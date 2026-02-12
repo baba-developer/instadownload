@@ -3,57 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Video Downloader</title>
+    <title>Insta Video Downloader</title>
     <style>
-        body { background: #f0f2f5; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .box { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 90%; max-width: 420px; text-align: center; }
-        .insta-gradient { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 35px; font-weight: 800; margin-bottom: 10px; display: block; }
-        input { width: 100%; padding: 15px; border: 2px solid #efefef; border-radius: 12px; margin: 20px 0; box-sizing: border-box; font-size: 15px; outline: none; }
-        input:focus { border-color: #dc2743; }
-        .btn { width: 100%; background: #dc2743; color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; font-size: 17px; cursor: pointer; transition: 0.3s; }
-        .btn:hover { background: #bc1888; transform: translateY(-2px); }
-        #result { display: none; margin-top: 30px; padding: 20px; border-radius: 12px; background: #fff5f6; border: 1px solid #fed7da; }
-        .download-now { display: inline-block; background: #28a745; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-top: 15px; }
+        body { background: #fafafa; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 35px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; border: 1px solid #dbdbdb; }
+        .logo { font-size: 28px; font-weight: bold; background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; display: block; }
+        input { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 20px; box-sizing: border-box; background: #fafafa; }
+        .btn { width: 100%; background: #0095f6; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: 600; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #1877f2; }
+        #download-box { display: none; margin-top: 25px; padding: 15px; border-top: 1px solid #eee; }
+        .final-dl { display: block; background: #28a745; color: white; padding: 12px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <span class="insta-gradient">InstaSave</span>
-    <p style="color: #666;">Paste link and download instantly</p>
+<div class="card">
+    <span class="logo">Instagram Saver</span>
+    <input type="text" id="instaLink" placeholder="Paste link here...">
+    <button onclick="getLink()" class="btn" id="loadBtn">Download Video</button>
     
-    <input type="text" id="linkInput" placeholder="https://www.instagram.com/reel/...">
-    <button onclick="generateLink()" class="btn" id="mainBtn">Get Download Link</button>
-    
-    <div id="result">
-        <p style="margin:0; font-weight: bold; color: #333;">Link Generated Successfully!</p>
-        <div id="btnHolder"></div>
-        <p style="font-size: 12px; color: #888; margin-top: 15px;">Note: Link will open a video player. Right-click or hold the video and select 'Save Video'.</p>
+    <div id="download-box">
+        <p style="font-size: 14px; color: #262626;">Server is ready!</p>
+        <div id="target"></div>
+        <p style="font-size: 11px; color: #8e8e8e; margin-top: 10px;">If link doesn't work, try opening in Google Chrome.</p>
     </div>
 </div>
 
 <script>
-function generateLink() {
-    var url = document.getElementById('linkInput').value.trim();
-    var res = document.getElementById('result');
-    var holder = document.getElementById('btnHolder');
-    var btn = document.getElementById('mainBtn');
+function getLink() {
+    var link = document.getElementById('instaLink').value.trim();
+    var box = document.getElementById('download-box');
+    var target = document.getElementById('target');
+    var btn = document.getElementById('loadBtn');
 
-    if (url.includes("instagram.com")) {
-        btn.innerText = "Please Wait...";
+    if (link.includes("instagram.com")) {
+        btn.innerText = "Processing...";
         btn.disabled = true;
 
-        // Using the 'dd' trick which is the most stable way to bypass blocks
-        var downloadUrl = url.replace("instagram.com", "ddinstagram.com");
+        // Using a different stable service: Publer
+        // This opens a very clean download page that isn't blocked by DNS
+        var cleanLink = "https://publer.io/tools/media-downloader?url=" + encodeURIComponent(link);
 
         setTimeout(function() {
-            res.style.display = "block";
-            holder.innerHTML = '<a href="' + downloadUrl + '" target="_blank" class="download-now">GO TO DOWNLOAD PAGE</a>';
-            btn.innerText = "Get Download Link";
+            box.style.display = "block";
+            target.innerHTML = '<a href="' + cleanLink + '" target="_blank" class="final-dl">GO TO SECURE DOWNLOAD PAGE</a>';
+            btn.innerText = "Download Video";
             btn.disabled = false;
-        }, 1500);
+        }, 1000);
     } else {
-        alert("Bhai, Instagram ka sahi link dalo!");
+        alert("Bhai, link sahi nahi hai!");
     }
 }
 </script>
