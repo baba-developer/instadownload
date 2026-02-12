@@ -1,38 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
+ <?xml version="1.0" encoding="UTF-8" ?>
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/atom/ns' xmlns:expr='http://www.google.com/class/0.1'>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapInsta - Instagram Downloader</title>
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-        .navbar { background: white; padding: 15px 0; text-align: center; border-bottom: 1px solid #e1e1e1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .logo { color: #2ecc71; font-size: 28px; font-weight: 800; text-decoration: none; }
-        .hero { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); padding: 60px 20px; text-align: center; color: white; }
-        .hero h1 { margin: 0; font-size: 32px; font-weight: 700; }
-        .hero p { margin: 10px 0 30px; opacity: 0.9; }
-        .container { max-width: 800px; margin: -40px auto 40px; padding: 0 20px; }
-        .search-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 15px; }
-        input { width: 100%; padding: 18px; border: 2px solid #2ecc71; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none; }
-        .btn-download { background: #2ecc71; color: white; border: none; padding: 18px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; }
-        .btn-download:hover { background: #27ae60; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); }
-        #result-section { display: none; margin-top: 30px; text-align: center; background: white; padding: 25px; border-radius: 12px; border: 1px solid #e1e1e1; }
-        .go-btn { display: inline-block; background: #3498db; color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px; margin-top: 15px; }
-        .footer { text-align: center; padding: 40px; color: #7f8c8d; font-size: 14px; }
-    </style>
+  <title>Instagram Downloader</title>
+  <b:skin><![CDATA[
+    body { background: #f4f4f4; margin: 0; padding: 20px; font-family: sans-serif; }
+    .main-box { max-width: 500px; margin: 50px auto; background: #fff; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; text-align: center; }
+    .header { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); color: #fff; padding: 25px; }
+    .content { padding: 25px; }
+    input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; }
+    button { width: 100%; background: #dc2743; color: #fff; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+    #result { margin-top: 20px; display: none; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc; }
+  ]]></b:skin>
 </head>
 <body>
 
-    <div class="navbar">
-        <a href="#" class="logo">SnapInsta</a>
-    </div>
+  <b:section id='main-content' showaddelement='yes'>
+    <b:widget id='HTML1' locked='false' title='Downloader' type='HTML'>
+      <b:includable id='main'>
+       
+        <div class='main-box'>
+          <div class='header'>
+            <h3 style='margin:0; color:#ffffff !important;'>Instagram Downloader</h3>
+            <p style='margin:5px 0 0; font-size:14px; opacity:0.9;'>Fast &amp; Easy Video Saver</p>
+          </div>
+          <div class='content'>
+            <input id='insta_url' placeholder='Paste Link Here...' type='text'/>
+            <button id='get_btn' onclick='startDownload()' type='button'>DOWNLOAD NOW</button>
+           
+            <div id='result'>
+              <p id='status' style='font-size:14px; color:#555;'>🔄 Processing...</p>
+              <div id='dl_container'></div>
+            </div>
+          </div>
+        </div>
 
-    <div class="hero">
-        <h1>Instagram Video Downloader</h1>
-        <p>Download High Quality Instagram Videos, Reels, Photos, IGTV</p>
-    </div>
+        <script type='text/javascript'>
+        //<![CDATA[
+        function startDownload() {
+            var url = document.getElementById('insta_url').value.trim();
+            var res = document.getElementById('result');
+            var status = document.getElementById('status');
+            var container = document.getElementById('dl_container');
+            var btn = document.getElementById('get_btn');
 
-    <div class="container">
-        <div class="search-box">
-            <input type="text" id="instaLink" placeholder="Paste URL Instagram">
-            <button onclick="snapDownload()" id="main
+            if (url.indexOf("instagram.com") !== -1) {
+                res.style.display = "block";
+                container.innerHTML = "";
+                btn.disabled = true;
+                btn.innerHTML = "Wait...";
+
+                var api = "https://loader.to/api/button/?url=" + encodeURIComponent(url) + "&f=720";
+
+                setTimeout(function() {
+                    status.innerHTML = "<b>Step 2:</b> Click blue button below:";
+                    container.innerHTML = '<iframe src="' + api + '" style="width:100%; height:80px; border:none; overflow:hidden;" scrolling="no"></iframe>';
+                    btn.disabled = false;
+                    btn.innerHTML = "DOWNLOAD NOW";
+                }, 2500);
+            } else {
+                alert("Sahi Instagram link daalein!");
+            }
+        }
+        //]]>
+        </script>
+
+      </b:includable>
+    </b:widget>
+  </b:section>
+
+</body>
+</html>  
