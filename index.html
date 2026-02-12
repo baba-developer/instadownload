@@ -1,72 +1,71 @@
- <?xml version="1.0" encoding="UTF-8" ?>
-<html xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/atom/ns' xmlns:expr='http://www.google.com/class/0.1'>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Instagram Downloader</title>
-  <b:skin><![CDATA[
-    body { background: #f4f4f4; margin: 0; padding: 20px; font-family: sans-serif; }
-    .main-box { max-width: 500px; margin: 50px auto; background: #fff; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; text-align: center; }
-    .header { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); color: #fff; padding: 25px; }
-    .content { padding: 25px; }
-    input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; }
-    button { width: 100%; background: #dc2743; color: #fff; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-    #result { margin-top: 20px; display: none; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ccc; }
-  ]]></b:skin>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnapInsta - Best Instagram Downloader</title>
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        .header { background: #2ecc71; color: white; padding: 40px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 35px; }
+        .container { max-width: 600px; margin: -30px auto 40px; padding: 20px; }
+        .main-box { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        input { width: 100%; padding: 15px; border: 2px solid #2ecc71; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; margin-bottom: 20px; }
+        .btn-download { width: 100%; background: #2ecc71; color: white; border: none; padding: 15px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        
+        /* Ye hai result section jo link paste karne ke baad dikhega */
+        #result-area { display: none; margin-top: 30px; border-top: 2px dashed #eee; padding-top: 20px; }
+        .video-preview { width: 100%; border-radius: 10px; margin-bottom: 15px; background: #000; height: 250px; display: flex; align-items: center; justify-content: center; color: white; }
+        .final-dl-link { display: inline-block; background: #e74c3c; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 18px; }
+    </style>
 </head>
 <body>
 
-  <b:section id='main-content' showaddelement='yes'>
-    <b:widget id='HTML1' locked='false' title='Downloader' type='HTML'>
-      <b:includable id='main'>
-       
-        <div class='main-box'>
-          <div class='header'>
-            <h3 style='margin:0; color:#ffffff !important;'>Instagram Downloader</h3>
-            <p style='margin:5px 0 0; font-size:14px; opacity:0.9;'>Fast &amp; Easy Video Saver</p>
-          </div>
-          <div class='content'>
-            <input id='insta_url' placeholder='Paste Link Here...' type='text'/>
-            <button id='get_btn' onclick='startDownload()' type='button'>DOWNLOAD NOW</button>
-           
-            <div id='result'>
-              <p id='status' style='font-size:14px; color:#555;'>🔄 Processing...</p>
-              <div id='dl_container'></div>
+    <div class="header">
+        <h1>SnapInsta</h1>
+        <p>Download Reels & Videos Directly</p>
+    </div>
+
+    <div class="container">
+        <div class="main-box">
+            <input type="text" id="instaUrl" placeholder="Paste Instagram Link Here...">
+            <button onclick="getDownload()" id="btn" class="btn-download">Download</button>
+
+            <div id="result-area">
+                <div class="video-preview" id="previewBox">
+                    <span>Video Processing...</span>
+                </div>
+                <div id="download-button-place"></div>
             </div>
-          </div>
         </div>
+    </div>
 
-        <script type='text/javascript'>
-        //<![CDATA[
-        function startDownload() {
-            var url = document.getElementById('insta_url').value.trim();
-            var res = document.getElementById('result');
-            var status = document.getElementById('status');
-            var container = document.getElementById('dl_container');
-            var btn = document.getElementById('get_btn');
+    <script>
+    function getDownload() {
+        var url = document.getElementById('instaUrl').value.trim();
+        var res = document.getElementById('result-area');
+        var btn = document.getElementById('btn');
+        var dlPlace = document.getElementById('download-button-place');
 
-            if (url.indexOf("instagram.com") !== -1) {
-                res.style.display = "block";
-                container.innerHTML = "";
-                btn.disabled = true;
-                btn.innerHTML = "Wait...";
+        if(url.includes("instagram.com")) {
+            res.style.display = "block";
+            btn.disabled = true;
+            btn.innerText = "Please Wait...";
+            
+            // Sabse stable mirror trick: 'dd' prefix
+            var directDownloadUrl = url.replace("instagram.com", "ddinstagram.com");
 
-                var api = "https://loader.to/api/button/?url=" + encodeURIComponent(url) + "&f=720";
-
-                setTimeout(function() {
-                    status.innerHTML = "<b>Step 2:</b> Click blue button below:";
-                    container.innerHTML = '<iframe src="' + api + '" style="width:100%; height:80px; border:none; overflow:hidden;" scrolling="no"></iframe>';
-                    btn.disabled = false;
-                    btn.innerHTML = "DOWNLOAD NOW";
-                }, 2500);
-            } else {
-                alert("Sahi Instagram link daalein!");
-            }
+            setTimeout(function() {
+                document.getElementById('previewBox').innerHTML = '<p style="padding:20px;">Video Link Ready! Click below to save to gallery.</p>';
+                dlPlace.innerHTML = '<a href="' + directDownloadUrl + '" class="final-dl-link">SAVE VIDEO TO GALLERY</a>';
+                btn.disabled = false;
+                btn.innerText = "Download Another";
+            }, 2000);
+        } else {
+            alert("Bhai, sahi link dalo!");
         }
-        //]]>
-        </script>
-
-      </b:includable>
-    </b:widget>
-  </b:section>
+    }
+    </script>
 
 </body>
-</html>  
+</html>
