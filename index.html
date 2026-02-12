@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsversion='3' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+<title>Instagram Downloader</title>
+<b:skin><![CDATA[
+/* Required Blogger Skin */
+body { background: #f0f2f5; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.main-card { background: #fff; width: 100%; max-width: 450px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #eee; margin: 20px; }
+.header-box { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 30px; text-align: center; color: #fff; }
+.header-box h1 { margin: 0; font-size: 24px; color: #fff !important; }
+.header-box p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
+.input-area { padding: 30px; }
+input#instaUrl { width: 100%; padding: 15px; border: 2px solid #f0f0f0; border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.3s; margin-bottom: 20px; }
+input#instaUrl:focus { border-color: #dc2743; }
+button#getBtn { width: 100%; background: #dc2743; color: #fff; border: none; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; transition: 0.3s; }
+button#getBtn:hover { background: #bc1888; }
+#statusSection { margin-top: 25px; text-align: center; display: none; }
+#iframeWrapper { margin-top: 15px; min-height: 100px; background: #fafafa; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px dashed #ddd; }
+]]></b:skin>
+</head>
+<body>
+
+<b:section id='main-body' showaddelement='yes'>
+  <b:widget id='HTML101' locked='false' title='Instagram Tool' type='HTML' version='2' visible='true'>
+    <b:widget-settings>
+      <b:widget-setting name='content'/>
+    </b:widget-settings>
+    <b:includable id='main'>
+      <div class='main-card'>
+        <div class='header-box'>
+          <h1>Instagram Downloader</h1>
+          <p>Download Videos &amp; Reels Instantly</p>
+        </div>
+        <div class='input-area'>
+          <input id='instaUrl' placeholder='Paste Instagram link here...' type='text'/>
+          <button id='getBtn' onclick='handleDownload()' type='button'>DOWNLOAD NOW</button>
+          
+          <div id='statusSection'>
+            <p id='msgText' style='font-size:14px; color:#666;'>Finding video... Please wait.</p>
+            <div id='iframeWrapper'>
+              </div>
+          </div>
+        </div>
+      </div>
+
+      <script type='text/javascript'>
+      //<![CDATA[
+      function handleDownload() {
+          var input = document.getElementById('instaUrl').value.trim();
+          var status = document.getElementById('statusSection');
+          var wrapper = document.getElementById('iframeWrapper');
+          var btn = document.getElementById('getBtn');
+          var msg = document.getElementById('msgText');
+
+          if (input.indexOf('instagram.com') !== -1) {
+              status.style.display = 'block';
+              wrapper.innerHTML = '<div style="color:#888;">Connecting to server...</div>';
+              btn.disabled = true;
+              btn.innerHTML = 'Processing...';
+
+              // API call inside iframe to bypass Blogger security
+              var apiUrl = "https://loader.to/api/button/?url=" + encodeURIComponent(input) + "&f=720";
+              
+              setTimeout(function() {
+                  msg.innerHTML = "<b>Step 2:</b> Click the button below to save:";
+                  wrapper.innerHTML = '<iframe src="' + apiUrl + '" style="width:100%; height:90px; border:none; overflow:hidden;" scrolling="no"></iframe>';
+                  btn.disabled = false;
+                  btn.innerHTML = 'DOWNLOAD NOW';
+              }, 3000);
+          } else {
+              alert('Please paste a valid Instagram Link!');
+          }
+      }
+      //]]>
+      </script>
+    </b:includable>
+  </b:widget>
+</b:section>
+
+</body>
+</html>
