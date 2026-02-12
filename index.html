@@ -3,56 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instagram Downloader</title>
+    <title>Instagram Downloader - Fast & Free</title>
     <style>
-        body { background: #f4f7f6; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; border: 1px solid #eee; }
-        .header { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); color: white; margin: -30px -30px 25px -30px; padding: 25px; border-radius: 20px 20px 0 0; }
-        input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; outline: none; font-size: 16px; }
-        input:focus { border-color: #dc2743; }
-        button { width: 100%; background: #dc2743; color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; }
-        #download-area { margin-top: 25px; display: none; padding: 20px; background: #fff9f9; border-radius: 10px; border: 1px dashed #dc2743; }
-        .dl-btn { display: inline-block; background: #007bff; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px; }
+        body { background: #fafafa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; border: 1px solid #efefef; }
+        .logo { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 32px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
+        p { color: #8e8e8e; margin-bottom: 30px; font-size: 14px; }
+        input { width: 100%; padding: 15px; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; outline: none; background: #fafafa; font-size: 14px; }
+        input:focus { border: 1px solid #a8a8a8; }
+        #downloadBtn { width: 100%; background: #0095f6; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        #downloadBtn:hover { background: #1877f2; }
+        #downloadBtn:disabled { background: #b2dffc; cursor: not-allowed; }
+        #resultArea { margin-top: 30px; display: none; padding: 20px; border-radius: 10px; background: #f8f9fa; border: 1px solid #eee; }
+        .success-btn { display: block; background: #28a745; color: white; padding: 15px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="header">
-        <h2 style="margin:0">Insta Downloader</h2>
-        <p style="margin:5px 0 0; opacity:0.9;">Working Fix 2026</p>
-    </div>
-    <input type="text" id="instaUrl" placeholder="Paste Instagram Link Here...">
-    <button onclick="getDownload()" id="mainBtn">GENERATE DOWNLOAD LINK</button>
+<div class="container">
+    <div class="logo">InstaSave</div>
+    <p>Download Instagram Reels & Videos instantly</p>
     
-    <div id="download-area">
-        <p id="statusText" style="color: #444; font-weight: bold;">Video Ready!</p>
-        <div id="button-container"></div>
+    <input type="text" id="videoUrl" placeholder="Paste Instagram link here (e.g. https://www.instagram.com/reel/...)">
+    <button onclick="startDownload()" id="downloadBtn">Get Download Link</button>
+    
+    <div id="resultArea">
+        <div id="loader" style="color: #555;">⚙️ Generating Secure Link...</div>
+        <div id="linkContainer"></div>
     </div>
 </div>
 
 <script>
-function getDownload() {
-    var url = document.getElementById('instaUrl').value.trim();
-    var area = document.getElementById('download-area');
-    var container = document.getElementById('button-container');
-    var btn = document.getElementById('mainBtn');
+function startDownload() {
+    var inputUrl = document.getElementById('videoUrl').value.trim();
+    var btn = document.getElementById('downloadBtn');
+    var resArea = document.getElementById('resultArea');
+    var container = document.getElementById('linkContainer');
+    var loader = document.getElementById('loader');
 
-    if(url.includes("instagram.com")) {
-        area.style.display = "block";
-        container.innerHTML = "Processing...";
+    if (inputUrl.includes("instagram.com")) {
+        resArea.style.display = "block";
+        container.innerHTML = "";
+        loader.style.display = "block";
         btn.disabled = true;
+        btn.innerText = "Processing...";
 
-        // Bypassing the "sad face" by opening in a direct button instead of iframe
-        var finalUrl = "https://save.fastreels.workers.dev/?url=" + encodeURIComponent(url);
-        
+        // External high-speed downloader service
+        var finalLink = "https://ddinstagram.com/reels/" + inputUrl.split("/reels/")[1];
+        if(!inputUrl.includes("/reels/")) {
+             finalLink = inputUrl.replace("instagram.com", "ddinstagram.com");
+        }
+
         setTimeout(function() {
-            container.innerHTML = '<a href="' + finalUrl + '" class="dl-btn" target="_blank">CLICK TO DOWNLOAD VIDEO</a>';
+            loader.style.display = "none";
+            container.innerHTML = `
+                <div style="color: #262626; font-weight: 600; margin-bottom: 10px;">✅ Link Ready!</div>
+                <a href="${inputUrl.replace('instagram.com', 'ddinstagram.com')}" target="_blank" class="success-btn">DOWNLOAD VIDEO NOW</a>
+                <p style="margin-top:15px; font-size:12px;">Link will open in a new tab. Just click 'Download' there.</p>
+            `;
             btn.disabled = false;
-            document.getElementById('statusText').innerHTML = "✅ Link Generated!";
-        }, 1500);
+            btn.innerText = "Get Download Link";
+        }, 2000);
     } else {
-        alert("Please paste a valid Instagram link!");
+        alert("Bhai, sahi Instagram link paste karein!");
     }
 }
 </script>
