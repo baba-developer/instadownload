@@ -3,67 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapInsta - Download Instagram Videos</title>
+    <title>InstaSaver - Professional Downloader</title>
     <style>
-        body { background: #f4f4f4; font-family: 'Segoe UI', sans-serif; margin: 0; }
-        .nav { background: white; padding: 20px; text-align: center; border-bottom: 2px solid #2ecc71; }
-        .logo { color: #2ecc71; font-size: 32px; font-weight: 900; text-decoration: none; }
-        .hero { background: #2ecc71; color: white; padding: 60px 20px; text-align: center; }
-        .container { max-width: 500px; margin: -50px auto 50px; padding: 0 15px; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); text-align: center; }
-        input { width: 100%; padding: 16px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; margin-bottom: 20px; transition: 0.3s; }
+        body { background: #f4f7f6; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; border-top: 5px solid #2ecc71; }
+        h2 { color: #2ecc71; margin-bottom: 10px; font-size: 28px; }
+        p { color: #666; margin-bottom: 30px; }
+        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; outline: none; font-size: 16px; }
         input:focus { border-color: #2ecc71; }
-        .btn-dl { width: 100%; background: #2ecc71; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer; }
-        #result-box { display: none; margin-top: 30px; padding: 20px; border-radius: 15px; background: #eefdf3; border: 1px solid #2ecc71; }
-        .final-btn { display: block; background: #3498db; color: white; padding: 16px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 18px; margin-top: 15px; }
+        .btn { width: 100%; background: #2ecc71; color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.3s; }
+        .btn:hover { background: #27ae60; }
+        #result { display: none; margin-top: 25px; padding: 20px; background: #f9fffb; border-radius: 10px; border: 1px dashed #2ecc71; }
+        .dl-btn { display: inline-block; background: #3498db; color: white; padding: 14px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="nav"><a href="#" class="logo">SnapInsta</a></div>
-    <div class="hero">
-        <h1>Instagram Video Downloader</h1>
-        <p>High quality reels & video saver</p>
+<div class="card">
+    <h2>InstaSaver</h2>
+    <p>Fast & Reliable Video Downloader</p>
+    <input type="text" id="url" placeholder="Paste Instagram Link Here...">
+    <button onclick="download()" id="btn" class="btn">Generate Link</button>
+    
+    <div id="result">
+        <p id="msg" style="margin:0; font-weight: bold;">Connection Secure!</p>
+        <div id="btnContainer"></div>
     </div>
+</div>
 
-    <div class="container">
-        <div class="card">
-            <input type="text" id="urlInput" placeholder="Paste Instagram Link Here...">
-            <button onclick="getSnap()" id="mainBtn" class="btn-dl">Download</button>
+<script>
+function download() {
+    var link = document.getElementById('url').value.trim();
+    var res = document.getElementById('result');
+    var container = document.getElementById('btnContainer');
+    var mainBtn = document.getElementById('btn');
 
-            <div id="result-box">
-                <p style="color: #27ae60; font-weight: bold; margin: 0;">Server Connected!</p>
-                <div id="btnTarget"></div>
-                <p style="font-size: 12px; color: #666; margin-top: 15px;">Click the blue button. If it asks, click 'Redirect anyway'.</p>
-            </div>
-        </div>
-    </div>
+    if(link.includes("instagram.com")) {
+        res.style.display = "block";
+        mainBtn.disabled = true;
+        mainBtn.innerText = "Connecting...";
 
-    <script>
-    function getSnap() {
-        var link = document.getElementById('urlInput').value.trim();
-        var box = document.getElementById('result-box');
-        var target = document.getElementById('btnTarget');
-        var btn = document.getElementById('mainBtn');
-
-        if(link.includes("instagram.com")) {
-            box.style.display = "block";
-            target.innerHTML = "Processing...";
-            btn.disabled = true;
-
-            // Using the most powerful SnapInsta engine (SnapSave)
-            // This is a direct gateway that bypasses DNS errors
-            var engineLink = "https://snapsave.app/download-video-instagram?url=" + encodeURIComponent(link);
-
-            setTimeout(function() {
-                target.innerHTML = '<a href="' + engineLink + '" target="_blank" class="final-btn">GET VIDEO LINKS</a>';
-                btn.disabled = false;
-                btn.innerText = "Download Another";
-            }, 1200);
-        } else {
-            alert("Bhai, sahi Instagram link paste karein!");
-        }
+        // Publer is not blocked and works perfectly in Pakistan
+        var publerUrl = "https://publer.io/tools/media-downloader?url=" + encodeURIComponent(link);
+        
+        setTimeout(function() {
+            container.innerHTML = '<a href="' + publerUrl + '" class="dl-btn" target="_blank">CLICK TO DOWNLOAD VIDEO</a>';
+            mainBtn.disabled = false;
+            mainBtn.innerText = "Generate Link";
+        }, 1200);
+    } else {
+        alert("Bhai, Instagram ka link sahi nahi hai!");
     }
-    </script>
+}
+</script>
+
 </body>
 </html>
