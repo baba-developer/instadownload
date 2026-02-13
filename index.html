@@ -2,71 +2,125 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Car Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Car Game</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #333; }
-        #gameArea { width: 400px; height: 100vh; background: #222; margin: auto; position: relative; border-left: 5px dashed #fff; border-right: 5px dashed #fff; overflow: hidden; }
-        .car { width: 50px; height: 80px; position: absolute; bottom: 20px; background: red; border-radius: 5px; }
-        .enemy { width: 50px; height: 80px; position: absolute; background: blue; border-radius: 5px; }
-        .line { width: 10px; height: 100px; background: white; position: absolute; left: 195px; }
-        #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; z-index: 10; }
+        * { box-sizing: border-box; touch-action: manipulation; }
+        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background: #333; }
+        #gameArea { width: 100%; max-width: 400px; height: 100vh; background: #222; margin: auto; position: relative; border-left: 5px solid #444; border-right: 5px solid #444; overflow: hidden; }
+        .car { width: 45px; height: 70px; position: absolute; bottom: 120px; background: #ff4757; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.1s; }
+        .enemy { width: 45px; height: 70px; position: absolute; background: #1e90ff; border-radius: 8px; }
+        #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; z-index: 10; font-weight: bold; }
+        
+        /* Controls Styling */
+        .controls { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: space-around; padding: 10px; z-index: 20; }
+        .btn { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; user-select: none; }
+        .action-btns { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; z-index: 20; }
+        .small-btn { padding: 8px 12px; background: #ffa500; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="score">Score: 0</div>
+
     <div id="gameArea">
-        <div class="car" id="player"></div>
+        <div id="score">Score: 0</div>
+        
+        <div class="action-btns">
+            <button class="small-btn" onclick="togglePause()" id="pauseBtn">Pause</button>
+            <button class="small-btn" onclick="location.reload()">Restart</button>
+        </div>
+
+        <div class="car" id="player" style="left: 175px;"></div>
+
+        <div class="controls">
+            <div class="btn" id="leftBtn">←</div>
+            <div class="btn" id="upBtn">↑</div>
+            <div class="btn" id="downBtn">↓</div>
+            <div class="btn" id="rightBtn">→</div>
+        </div>
     </div>
 
     <script>
         const player = document.getElementById('player');
         const gameArea = document.getElementById('gameArea');
         const scoreElement = document.getElementById('score');
-        let playerPos = { x: 175, y: 500 };
-        let score = 0;
+        const pauseBtn = document.getElementById('pauseBtn');
 
-        // Player Movement
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' && playerPos.x > 0) playerPos.x -= 20;
-            if (e.key === 'ArrowRight' && playerPos.x < 350) playerPos.x += 20;
+        let playerPos = { x: 175, y: window.innerHeight - 190 };
+        let score = 0;
+        let isPaused = false;
+        let gameSpeed = 5;
+
+        // Player Movement Logic
+        function movePlayer(dir) {
+            if (isPaused) return;
+            const step = 25;
+            if (dir === 'left' && playerPos.x > 10) playerPos.x -= step;
+            if (dir === 'right' && playerPos.x < (gameArea.clientWidth - 60)) playerPos.x += step;
+            if (dir === 'up' && playerPos.y > 50) playerPos.y -= step;
+            if (dir === 'down' && playerPos.y < (window.innerHeight - 120)) playerPos.y += step;
+
             player.style.left = playerPos.x + 'px';
+            player.style.top = playerPos.y + 'px';
+        }
+
+        // Button Listeners
+        document.getElementById('leftBtn').addEventListener('touchstart', () => movePlayer('left'));
+        document.getElementById('rightBtn').addEventListener('touchstart', () => movePlayer('right'));
+        document.getElementById('upBtn').addEventListener('touchstart', () => movePlayer('up'));
+        document.getElementById('downBtn').addEventListener('touchstart', () => movePlayer('down'));
+        
+        // Keyboard support for PC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') movePlayer('left');
+            if (e.key === 'ArrowRight') movePlayer('right');
+            if (e.key === 'ArrowUp') movePlayer('up');
+            if (e.key === 'ArrowDown') movePlayer('down');
+            if (e.key === 'p') togglePause();
         });
 
-        // Create Enemy Cars
+        function togglePause() {
+            isPaused = !isPaused;
+            pauseBtn.innerText = isPaused ? "Resume" : "Pause";
+        }
+
         function createEnemy() {
+            if (isPaused) return;
+
             let enemy = document.createElement('div');
             enemy.classList.add('enemy');
-            enemy.style.left = Math.floor(Math.random() * 350) + 'px';
+            enemy.style.left = Math.floor(Math.random() * (gameArea.clientWidth - 50)) + 'px';
             enemy.style.top = "-100px";
             gameArea.appendChild(enemy);
 
             let moveEnemy = setInterval(() => {
-                let top = parseInt(enemy.style.top);
-                if (top > window.innerHeight) {
-                    clearInterval(moveEnemy);
-                    gameArea.removeChild(enemy);
-                    score++;
-                    scoreElement.innerText = "Score: " + score;
-                } else {
-                    enemy.style.top = (top + 5) + 'px';
-                }
+                if (!isPaused) {
+                    let top = parseInt(enemy.style.top);
+                    if (top > window.innerHeight) {
+                        clearInterval(moveEnemy);
+                        if(enemy.parentElement) gameArea.removeChild(enemy);
+                        score++;
+                        scoreElement.innerText = "Score: " + score;
+                    } else {
+                        enemy.style.top = (top + gameSpeed) + 'px';
+                    }
 
-                // Collision Detection
-                if (isCollide(player, enemy)) {
-                    alert("Game Over! Score: " + score);
-                    location.reload();
+                    if (isCollide(player, enemy)) {
+                        alert("Game Over! Score: " + score);
+                        location.reload();
+                    }
                 }
             }, 20);
         }
 
         function isCollide(a, b) {
-            aRect = a.getBoundingClientRect();
-            bRect = b.getBoundingClientRect();
+            let aRect = a.getBoundingClientRect();
+            let bRect = b.getBoundingClientRect();
             return !((aRect.bottom < bRect.top) || (aRect.top > bRect.bottom) || (aRect.right < bRect.left) || (aRect.left > bRect.right));
         }
 
         setInterval(createEnemy, 1500);
+        // Initial Position Fix
+        player.style.top = playerPos.y + 'px';
     </script>
 </body>
 </html>
