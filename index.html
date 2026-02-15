@@ -3,45 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Pro Elite</title>
+    <title>Snake Pro Elite Fix</title>
     <style>
+        /* Pura CSS pehle wala hi hai */
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         body { margin: 0; padding: 0; background: #020617; overflow: hidden; font-family: 'Segoe UI', sans-serif; height: 100vh; }
-        
-        /* Main & Settings Menu */
         #menu-overlay, #settings-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(2, 6, 23, 0.98); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 200;
         }
-
         h1, h2 { color: #4ade80; text-shadow: 0 0 10px #22c55e; margin-bottom: 20px; }
-
         .menu-btn, .setting-item {
             width: 240px; padding: 15px; margin: 10px;
             background: #1e293b; color: white; border: 2px solid #334155;
             border-radius: 12px; font-size: 18px; font-weight: bold; text-align: center;
         }
-
         .toggle-btn { background: #334155; padding: 5px 10px; border-radius: 5px; float: right; color: #4ade80; }
-
-        #score-board {
-            position: absolute; top: 20px; left: 20px; color: #4ade80; 
-            font-size: 20px; font-weight: bold; z-index: 100;
-        }
-
+        #score-board { position: absolute; top: 20px; left: 20px; color: #4ade80; font-size: 20px; font-weight: bold; z-index: 100; }
         canvas { display: block; width: 100vw; height: 100vh; background: #020617; }
-
-        /* Joypad Controls */
-        .joypad { 
-            position: absolute; bottom: 40px; right: 20px;
-            display: grid; grid-template-columns: repeat(3, 65px); gap: 8px; z-index: 100;
-        }
-        .btn { 
-            width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1); 
-            border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; 
-            color: white; font-size: 28px; display: flex; align-items: center; justify-content: center;
-        }
+        .joypad { position: absolute; bottom: 40px; right: 20px; display: grid; grid-template-columns: repeat(3, 65px); gap: 8px; z-index: 100; }
+        .btn { width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: white; font-size: 28px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -50,12 +32,10 @@
         <h1>SNAKE PRO</h1>
         <button class="menu-btn" onclick="startGame()">NEW GAME</button>
         <button class="menu-btn" onclick="toggleSettings(true)">SETTINGS</button>
-        <button class="menu-btn" onclick="alert('High Score: ' + highScore)">HIGH SCORE</button>
     </div>
 
     <div id="settings-overlay" style="display:none;">
         <h2>SETTINGS</h2>
-        <div class="setting-item" onclick="toggleMusic()">Music: <span id="musicStatus" class="toggle-btn">OFF</span></div>
         <div class="setting-item" onclick="toggleButtons()">Buttons: <span id="btnStatus" class="toggle-btn">ON</span></div>
         <button class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</button>
     </div>
@@ -83,8 +63,7 @@
         const box = 20;
         let snake, food, d, score, gameLoop;
         let showButtons = true;
-        let musicOn = false;
-        let highScore = localStorage.getItem("snakeHighScore") || 0;
+        let startX, startY; // Swipe variables
 
         function toggleSettings(show) {
             settings.style.display = show ? "flex" : "none";
@@ -97,27 +76,37 @@
             joypad.style.display = showButtons ? "grid" : "none";
         }
 
-        function toggleMusic() {
-            musicOn = !musicOn;
-            document.getElementById("musicStatus").innerText = musicOn ? "ON" : "OFF";
-            alert(musicOn ? "Music Enabled (Add your .mp3 file to play)" : "Music Disabled");
-        }
-
-        // FINGER TOUCH LOGIC (For Button Off Mode)
+        // SWIPE LOGIC FIX
         canvas.addEventListener('touchstart', (e) => {
-            if (showButtons) return; // Agar buttons on hain toh ye kaam nahi karega
-            let touchX = e.touches[0].clientX;
-            let touchY = e.touches[0].clientY;
-            let headX = snake[0].x;
-            let headY = snake[0].y;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, false);
 
-            // Logic: Finger head se jis taraf door hogi, snake wahan jayega
-            if (Math.abs(touchX - headX) > Math.abs(touchY - headY)) {
-                setDirection(touchX > headX ? "RIGHT" : "LEFT");
+        canvas.addEventListener('touchmove', (e) => {
+            if (showButtons) return; // Buttons ON hain toh swipe nahi chalega
+            e.preventDefault(); 
+        }, {passive: false});
+
+        canvas.addEventListener('touchend', (e) => {
+            if (showButtons) return;
+            
+            let endX = e.changedTouches[0].clientX;
+            let endY = e.changedTouches[0].clientY;
+
+            let diffX = endX - startX;
+            let diffY = endY - startY;
+
+            // Check if movement was horizontal or vertical
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Horizontal movement
+                if (diffX > 30) setDirection('RIGHT');
+                else if (diffX < -30) setDirection('LEFT');
             } else {
-                setDirection(touchY > headY ? "DOWN" : "UP");
+                // Vertical movement
+                if (diffY > 30) setDirection('DOWN');
+                else if (diffY < -30) setDirection('UP');
             }
-        });
+        }, false);
 
         function startGame() {
             snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
