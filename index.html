@@ -3,50 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Full Mobile</title>
+    <title>Snake Mobile Fix</title>
     <style>
-        * { box-sizing: border-box; touch-action: manipulation; }
+        * { box-sizing: border-box; touch-action: none; } /* Touch action none se zoom/scroll block hoga */
         body { 
             margin: 0; padding: 0; background: #020617; 
             overflow: hidden; font-family: sans-serif; 
             display: flex; flex-direction: column; height: 100vh;
         }
         
-        /* Full Screen Canvas */
-        #snakeCanvas { 
+        #score-board {
+            position: absolute; top: 20px; left: 20px;
+            color: #4ade80; font-size: 24px; font-weight: bold;
+            z-index: 20;
+        }
+
+        canvas { 
             display: block; width: 100vw; height: 100vh; 
             background: #020617; position: absolute; top: 0; left: 0;
         }
 
-        /* UI Overlays */
-        #score-board {
-            position: absolute; top: 20px; left: 20px;
-            color: #4ade80; font-size: 24px; font-weight: bold;
-            z-index: 10; text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-        }
-
-        .action-btns {
-            position: absolute; top: 20px; right: 20px; z-index: 10;
-        }
-
-        .reset-btn {
-            background: rgba(239, 68, 68, 0.8); color: white; border: none;
-            padding: 8px 15px; border-radius: 8px; font-weight: bold;
-        }
-
-        /* Transparent Mobile Controls */
+        /* Controls: Z-index zyada rakha hai taake touch register ho */
         .controls { 
-            position: absolute; bottom: 40px; width: 100%;
+            position: absolute; bottom: 50px; width: 100%;
             display: grid; grid-template-columns: repeat(3, 1fr); 
-            justify-items: center; align-items: center; gap: 10px; z-index: 10;
+            justify-items: center; align-items: center; gap: 15px; z-index: 100;
         }
+        
         .btn { 
-            width: 80px; height: 80px; background: rgba(255, 255, 255, 0.1); 
-            border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; 
-            color: white; font-size: 30px; display: flex; 
-            align-items: center; justify-content: center; backdrop-filter: blur(5px);
+            width: 85px; height: 85px; background: rgba(255, 255, 255, 0.15); 
+            border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; 
+            color: white; font-size: 35px; display: flex; 
+            align-items: center; justify-content: center; backdrop-filter: blur(10px);
+            -webkit-user-select: none; user-select: none;
         }
-        .btn:active { background: rgba(255, 255, 255, 0.3); }
+        
+        .btn:active { background: rgba(74, 222, 128, 0.5); border-color: #4ade80; }
+        
         .up { grid-column: 2; }
         .left { grid-column: 1; }
         .down { grid-column: 2; }
@@ -56,18 +49,13 @@
 <body>
 
     <div id="score-board">Score: <span id="score">0</span></div>
-    
-    <div class="action-btns">
-        <button class="reset-btn" onclick="location.reload()">Restart</button>
-    </div>
-
     <canvas id="snakeCanvas"></canvas>
 
     <div class="controls">
-        <div class="btn up" id="up">↑</div>
-        <div class="btn left" id="left">←</div>
-        <div class="btn down" id="down">↓</div>
-        <div class="btn right" id="right">→</div>
+        <div class="btn up" id="btnUp">↑</div>
+        <div class="btn left" id="btnLeft">←</div>
+        <div class="btn down" id="btnDown">↓</div>
+        <div class="btn right" id="btnRight">→</div>
     </div>
 
     <script>
@@ -75,103 +63,97 @@
         const ctx = canvas.getContext("2d");
         const scoreElement = document.getElementById("score");
 
-        // Screen adjustment
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Canvas Setup
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-        const box = 25; // Snake size
-        let snake = [
-            { x: box * 5, y: box * 10 },
-            { x: box * 4, y: box * 10 },
-            { x: box * 3, y: box * 10 }
-        ];
-        
-        let food = spawnFood();
+        const box = 20; 
+        let snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
+        let food = { x: box * 10, y: box * 5 };
         let d = "RIGHT";
         let score = 0;
 
+        // Direction Control Function
+        function setDirection(newDir) {
+            if (newDir == "LEFT" && d != "RIGHT") d = "LEFT";
+            if (newDir == "UP" && d != "DOWN") d = "UP";
+            if (newDir == "RIGHT" && d != "LEFT") d = "RIGHT";
+            if (newDir == "DOWN" && d != "UP") d = "DOWN";
+        }
+
+        // Button Click/Touch Handlers
+        const setupBtn = (id, dir) => {
+            const el = document.getElementById(id);
+            // Click aur Touch dono handle kiye hain
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); setDirection(dir); }, {passive: false});
+            el.addEventListener('mousedown', () => setDirection(dir));
+        };
+
+        setupBtn('btnUp', 'UP');
+        setupBtn('btnDown', 'DOWN');
+        setupBtn('btnLeft', 'LEFT');
+        setupBtn('btnRight', 'RIGHT');
+
+        // Food Spawn
         function spawnFood() {
-            return {
+            food = {
                 x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
-                y: Math.floor(Math.random() * (canvas.height / box - 4) + 2) * box
+                y: Math.floor(Math.random() * (canvas.height / box - 6) + 2) * box
             };
         }
-
-        function changeDir(dir) {
-            if (dir == "LEFT" && d != "RIGHT") d = "LEFT";
-            else if (dir == "UP" && d != "DOWN") d = "UP";
-            else if (dir == "RIGHT" && d != "LEFT") d = "RIGHT";
-            else if (dir == "DOWN" && d != "UP") d = "DOWN";
-        }
-
-        // Event Listeners for Touch
-        document.getElementById('up').addEventListener('touchstart', () => changeDir('UP'));
-        document.getElementById('down').addEventListener('touchstart', () => changeDir('DOWN'));
-        document.getElementById('left').addEventListener('touchstart', () => changeDir('LEFT'));
-        document.getElementById('right').addEventListener('touchstart', () => changeDir('RIGHT'));
 
         function draw() {
             ctx.fillStyle = "#020617";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Snake Drawing
-            for (let i = 0; i < snake.length; i++) {
+            // Snake
+            snake.forEach((part, i) => {
                 ctx.fillStyle = (i === 0) ? "#4ade80" : "#22c55e";
                 ctx.beginPath();
-                ctx.roundRect(snake[i].x, snake[i].y, box - 2, box - 2, 6);
+                ctx.roundRect(part.x, part.y, box - 2, box - 2, 5);
                 ctx.fill();
-                
-                if(i === 0) { // Eyes for head
-                    ctx.fillStyle = "black";
-                    ctx.beginPath();
-                    ctx.arc(snake[i].x + 7, snake[i].y + 7, 3, 0, Math.PI * 2);
-                    ctx.arc(snake[i].x + 18, snake[i].y + 7, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
+            });
 
-            // Food (Apple)
+            // Food
             ctx.fillStyle = "#ef4444";
             ctx.beginPath();
             ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
             ctx.fill();
 
-            let snakeX = snake[0].x;
-            let snakeY = snake[0].y;
+            let headX = snake[0].x;
+            let headY = snake[0].y;
 
-            if (d == "LEFT") snakeX -= box;
-            if (d == "UP") snakeY -= box;
-            if (d == "RIGHT") snakeX += box;
-            if (d == "DOWN") snakeY += box;
+            if (d == "LEFT") headX -= box;
+            if (d == "UP") headY -= box;
+            if (d == "RIGHT") headX += box;
+            if (d == "DOWN") headY += box;
 
-            if (snakeX == food.x && snakeY == food.y) {
+            if (headX == food.x && headY == food.y) {
                 score++;
-                scoreElement.innerHTML = score;
-                food = spawnFood();
+                scoreElement.innerText = score;
+                spawnFood();
             } else {
                 snake.pop();
             }
 
-            let newHead = { x: snakeX, y: snakeY };
+            let newHead = { x: headX, y: headY };
 
-            // Wall collision and self collision
-            if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
-                clearInterval(game);
+            // Collision
+            if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || 
+                snake.some((part, index) => index !== 0 && part.x === newHead.x && part.y === newHead.y)) {
                 alert("Game Over! Score: " + score);
                 location.reload();
+                return;
             }
 
             snake.unshift(newHead);
         }
 
-        function collision(head, array) {
-            for (let i = 0; i < array.length; i++) {
-                if (head.x == array[i].x && head.y == array[i].y) return true;
-            }
-            return false;
-        }
-
-        let game = setInterval(draw, 120);
+        setInterval(draw, 120);
     </script>
 </body>
 </html>
