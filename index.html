@@ -3,33 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Pro Elite Fix</title>
+    <title>Snake Pro Elite - Theme Edition</title>
     <style>
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
-        body { margin: 0; padding: 0; background: #020617; overflow: hidden; font-family: 'Segoe UI', sans-serif; height: 100vh; }
         
-        /* Menus Styling (Main, Settings, Game Over) */
+        /* CSS Variables for Themes */
+        :root {
+            --bg-color: #020617;
+            --overlay-bg: rgba(2, 6, 23, 0.98);
+            --text-color: #4ade80;
+            --btn-bg: #1e293b;
+            --snake-body: #22c55e;
+        }
+
+        .light-theme {
+            --bg-color: #e2e8f0;
+            --overlay-bg: rgba(226, 232, 240, 0.98);
+            --text-color: #166534;
+            --btn-bg: #cbd5e1;
+            --snake-body: #15803d;
+        }
+
+        body { 
+            margin: 0; padding: 0; background: var(--bg-color); 
+            overflow: hidden; font-family: 'Segoe UI', sans-serif; height: 100vh; 
+            transition: background 0.3s;
+        }
+        
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 6, 23, 0.98); display: flex; flex-direction: column;
+            background: var(--overlay-bg); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 200;
         }
 
-        h1, h2 { color: #4ade80; text-shadow: 0 0 10px #22c55e; margin-bottom: 20px; }
-        .final-score { color: white; font-size: 24px; margin-bottom: 20px; }
+        h1, h2 { color: var(--text-color); text-shadow: 0 0 10px rgba(34, 197, 94, 0.3); margin-bottom: 20px; }
+        .final-score { color: #1e293b; font-size: 24px; margin-bottom: 20px; }
+        .light-theme .final-score { color: #020617; }
 
         .menu-btn {
             width: 240px; padding: 15px; margin: 10px;
-            background: #1e293b; color: white; border: 2px solid #334155;
+            background: var(--btn-bg); color: #fff; border: 2px solid rgba(0,0,0,0.1);
             border-radius: 12px; font-size: 18px; font-weight: bold; text-align: center; cursor: pointer;
         }
-        .menu-btn:active { background: #4ade80; color: #020617; }
+        .light-theme .menu-btn { color: #1e293b; }
+        
         .toggle-btn { background: #334155; padding: 5px 10px; border-radius: 5px; float: right; color: #4ade80; }
 
-        #score-board { position: absolute; top: 20px; left: 20px; color: #4ade80; font-size: 20px; font-weight: bold; z-index: 100; }
-        canvas { display: block; width: 100vw; height: 100vh; background: #020617; }
+        #score-board { position: absolute; top: 20px; left: 20px; color: var(--text-color); font-size: 20px; font-weight: bold; z-index: 100; }
+        canvas { display: block; width: 100vw; height: 100vh; background: var(--bg-color); }
+        
         .joypad { position: absolute; bottom: 40px; right: 20px; display: grid; grid-template-columns: repeat(3, 65px); gap: 8px; z-index: 100; }
-        .btn { width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: white; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+        .btn { width: 65px; height: 65px; background: rgba(0, 0, 0, 0.1); border: 2px solid rgba(0, 0, 0, 0.2); border-radius: 50%; color: var(--text-color); font-size: 28px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -42,15 +66,15 @@
 
     <div id="settings-overlay" class="overlay" style="display:none;">
         <h2>SETTINGS</h2>
-        <div class="setting-item menu-btn" onclick="toggleButtons()">Buttons: <span id="btnStatus" class="toggle-btn">ON</span></div>
+        <div class="setting-item menu-btn" onclick="toggleTheme()">Theme: <span id="themeStatus" class="toggle-btn">DARK</span></div>
         <div class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</div>
     </div>
 
     <div id="gameover-overlay" class="overlay" style="display:none;">
-        <h1 style="color: #ef4444; text-shadow: 0 0 10px #b91c1c;">GAME OVER</h1>
+        <h1 style="color: #ef4444;">GAME OVER</h1>
         <div class="final-score">Score: <span id="finalScoreDisplay">0</span></div>
         <div class="menu-btn" onclick="startGame()">PLAY AGAIN</div>
-        <div class="menu-btn" style="background:#334155" onclick="backToMenu()">BACK TO MENU</div>
+        <div class="menu-btn" style="background:#334155; color:white;" onclick="backToMenu()">BACK TO MENU</div>
     </div>
 
     <div id="score-board">Score: <span id="score">0</span></div>
@@ -69,45 +93,29 @@
         const menu = document.getElementById("menu-overlay");
         const settings = document.getElementById("settings-overlay");
         const gameover = document.getElementById("gameover-overlay");
-        const joypad = document.getElementById("joypad");
         
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
         const box = 20;
         let snake, food, d, score, gameLoop;
-        let showButtons = true;
-        let startX, startY;
+        let isDarkMode = true;
 
         function toggleSettings(show) {
             settings.style.display = show ? "flex" : "none";
             menu.style.display = show ? "none" : "flex";
         }
 
-        function toggleButtons() {
-            showButtons = !showButtons;
-            document.getElementById("btnStatus").innerText = showButtons ? "ON" : "OFF";
-            joypad.style.display = showButtons ? "grid" : "none";
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('light-theme');
+            document.getElementById("themeStatus").innerText = isDarkMode ? "DARK" : "LIGHT";
         }
 
         function backToMenu() {
             gameover.style.display = "none";
             menu.style.display = "flex";
         }
-
-        // Swipe Logic
-        canvas.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, false);
-        canvas.addEventListener('touchmove', (e) => { if (!showButtons) e.preventDefault(); }, {passive: false});
-        canvas.addEventListener('touchend', (e) => {
-            if (showButtons) return;
-            let diffX = e.changedTouches[0].clientX - startX;
-            let diffY = e.changedTouches[0].clientY - startY;
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (diffX > 30) setDirection('RIGHT'); else if (diffX < -30) setDirection('LEFT');
-            } else {
-                if (diffY > 30) setDirection('DOWN'); else if (diffY < -30) setDirection('UP');
-            }
-        }, false);
 
         function startGame() {
             snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
@@ -136,14 +144,21 @@
         }
 
         function draw() {
-            ctx.fillStyle = "#020617";
+            // Background color depends on theme variable
+            const bgColor = getComputedStyle(document.body).getPropertyValue('--bg-color');
+            const snakeColor = getComputedStyle(document.body).getPropertyValue('--snake-body');
+            const textColor = getComputedStyle(document.body).getPropertyValue('--text-color');
+
+            ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Snake
             snake.forEach((part, i) => {
-                ctx.fillStyle = (i === 0) ? "#4ade80" : "#22c55e";
+                ctx.fillStyle = (i === 0) ? textColor : snakeColor;
                 ctx.fillRect(part.x, part.y, box-1, box-1);
             });
 
+            // Food
             ctx.fillStyle = "#ef4444";
             ctx.beginPath();
             ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
@@ -171,7 +186,6 @@
                 snake.some((part, index) => index !== 0 && part.x === newHead.x && part.y === newHead.y)) {
                 
                 clearInterval(gameLoop);
-                // Alert ki jagah Menu dikhayen
                 document.getElementById("finalScoreDisplay").innerText = score;
                 gameover.style.display = "flex";
             }
