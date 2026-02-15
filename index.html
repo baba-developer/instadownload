@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Pro - Skins Edition</title>
+    <title>Snake Pro - Power-Up Edition</title>
     <style>
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         
@@ -64,15 +64,13 @@
     <div id="settings-overlay" class="overlay" style="display:none;">
         <h2>SETTINGS</h2>
         <div class="menu-btn" onclick="toggleTheme()">Theme: <span id="themeStatus">DARK</span></div>
-        
-        <div style="color: white; margin-top: 15px;">SELECT SNAKE SKIN:</div>
+        <div style="color: white; margin-top: 15px;">SELECT SKIN:</div>
         <div class="skin-options">
             <div class="skin-dot" style="background: #22c55e;" onclick="changeSkin('#4ade80', '#22c55e')"></div>
             <div class="skin-dot" style="background: #eab308;" onclick="changeSkin('#fde047', '#eab308')"></div>
             <div class="skin-dot" style="background: #3b82f6;" onclick="changeSkin('#60a5fa', '#3b82f6')"></div>
             <div class="skin-dot" style="background: #a855f7;" onclick="changeSkin('#c084fc', '#a855f7')"></div>
         </div>
-
         <div class="menu-btn" style="background:#4ade80; color:#020617; margin-top: 30px;" onclick="toggleSettings(false)">BACK</div>
     </div>
 
@@ -103,9 +101,10 @@
         canvas.height = window.innerHeight;
 
         const box = 20;
-        let snake, food, d, score, gameLoop;
+        let snake, food, powerUp, d, score, gameLoop;
         let snakeHeadColor = "#4ade80";
         let snakeBodyColor = "#22c55e";
+        let gameSpeed = 120;
 
         function toggleSettings(show) {
             settings.style.display = show ? "flex" : "none";
@@ -121,7 +120,6 @@
         function changeSkin(head, body) {
             snakeHeadColor = head;
             snakeBodyColor = body;
-            alert("Skin Updated!");
         }
 
         function backToMenu() {
@@ -129,16 +127,36 @@
             menu.style.display = "flex";
         }
 
+        function spawnFood() {
+            return {
+                x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
+                y: Math.floor(Math.random() * (canvas.height / box - 8) + 4) * box
+            };
+        }
+
+        function spawnPowerUp() {
+            if (Math.random() > 0.7) { // 30% chance ke power-up dikhe
+                return spawnFood();
+            }
+            return null;
+        }
+
         function startGame() {
             snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
-            food = { x: box * 10, y: box * 5 };
+            food = spawnFood();
+            powerUp = null;
             d = "RIGHT";
             score = 0;
+            gameSpeed = 120;
             document.getElementById("score").innerText = score;
             menu.style.display = "none";
             gameover.style.display = "none";
+            resetInterval();
+        }
+
+        function resetInterval() {
             if(gameLoop) clearInterval(gameLoop);
-            gameLoop = setInterval(draw, 120);
+            gameLoop = setInterval(draw, gameSpeed);
         }
 
         function setDirection(newDir) {
@@ -153,6 +171,7 @@
             ctx.fillStyle = isLight ? "#e2e8f0" : "#020617";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Snake Draw
             snake.forEach((part, i) => {
                 ctx.fillStyle = (i === 0) ? snakeHeadColor : snakeBodyColor;
                 ctx.beginPath();
@@ -160,10 +179,17 @@
                 ctx.fill();
             });
 
+            // Normal Food (Red)
             ctx.fillStyle = "#ef4444";
             ctx.beginPath();
             ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
             ctx.fill();
+
+            // Power-Up (Blue Diamond)
+            if (powerUp) {
+                ctx.fillStyle = "#3b82f6";
+                ctx.fillRect(powerUp.x + 4, powerUp.y + 4, box - 8, box - 8);
+            }
 
             let headX = snake[0].x;
             let headY = snake[0].y;
@@ -173,14 +199,24 @@
             if (d == "RIGHT") headX += box;
             if (d == "DOWN") headY += box;
 
+            // Eating Food
             if (headX == food.x && headY == food.y) {
                 score++;
                 document.getElementById("score").innerText = score;
-                food = {
-                    x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
-                    y: Math.floor(Math.random() * (canvas.height / box - 8) + 4) * box
-                };
-            } else {
+                food = spawnFood();
+                if (!powerUp) powerUp = spawnPowerUp(); // Check for power-up
+            } 
+            // Eating PowerUp
+            else if (powerUp && headX == powerUp.x && headY == powerUp.y) {
+                score += 5; // Bonus score
+                document.getElementById("score").innerText = score;
+                powerUp = null;
+                // Slow down speed for 5 seconds
+                gameSpeed = 180;
+                resetInterval();
+                setTimeout(() => { gameSpeed = 120; resetInterval(); }, 5000);
+            }
+            else {
                 snake.pop();
             }
 
