@@ -3,113 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Joypad Edition</title>
+    <title>Snake Pro Menu Edition</title>
     <style>
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         body { 
             margin: 0; padding: 0; background: #020617; 
-            overflow: hidden; font-family: sans-serif; 
+            overflow: hidden; font-family: 'Segoe UI', sans-serif; 
             display: flex; flex-direction: column; height: 100vh;
         }
         
-        /* UI Overlays */
-        #ui-layer {
-            position: absolute; top: 0; width: 100%; padding: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 100;
+        /* Menu Overlay */
+        #menu-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 6, 23, 0.95);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 200;
         }
-        #score-board { color: #4ade80; font-size: 24px; font-weight: bold; }
-        .top-btns { display: flex; gap: 10px; }
-        .action-btn { 
-            background: rgba(255,255,255,0.1); color: white; border: 1px solid white;
-            padding: 8px 12px; border-radius: 5px; font-weight: bold; font-size: 14px;
+
+        h1 { color: #4ade80; font-size: 40px; margin-bottom: 30px; text-shadow: 0 0 10px #22c55e; }
+
+        .menu-btn {
+            width: 220px; padding: 15px; margin: 10px;
+            background: #1e293b; color: white; border: 2px solid #334155;
+            border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer;
+        }
+        .menu-btn:active { background: #4ade80; color: #020617; }
+
+        #score-board {
+            position: absolute; top: 20px; left: 20px;
+            color: #4ade80; font-size: 20px; font-weight: bold; z-index: 100;
         }
 
         canvas { display: block; width: 100vw; height: 100vh; background: #020617; }
 
-        /* Joypad Style Controls (Pass Pass) */
+        /* Controls */
         .joypad { 
-            position: absolute; bottom: 40px; right: 20px; /* Right side par set kiya hai thumb ke liye */
-            display: grid; grid-template-columns: repeat(3, 65px); 
-            grid-template-rows: repeat(2, 65px); gap: 5px; z-index: 100;
+            position: absolute; bottom: 40px; right: 20px;
+            display: grid; grid-template-columns: repeat(3, 65px); gap: 5px; z-index: 100;
         }
-        
         .btn { 
-            width: 65px; height: 65px; background: rgba(255, 255, 255, 0.15); 
-            border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; 
-            color: white; font-size: 28px; display: flex; 
-            align-items: center; justify-content: center; backdrop-filter: blur(5px);
+            width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1); 
+            border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; 
+            color: white; font-size: 28px; display: flex; align-items: center; justify-content: center;
         }
-        
-        .btn:active { background: #4ade80; color: black; }
-        .up { grid-column: 2; grid-row: 1; }
-        .left { grid-column: 1; grid-row: 2; }
-        .down { grid-column: 2; grid-row: 2; }
-        .right { grid-column: 3; grid-row: 2; }
     </style>
 </head>
 <body>
 
-    <div id="ui-layer">
-        <div id="score-board">Score: <span id="score">0</span></div>
-        <div class="top-btns">
-            <button class="action-btn" onclick="togglePause()" id="pBtn">Pause</button>
-            <button class="action-btn" style="border-color:#ef4444" onclick="location.reload()">Restart</button>
-        </div>
+    <div id="menu-overlay">
+        <h1>SNAKE PRO</h1>
+        <button class="menu-btn" onclick="startGame()">NEW GAME</button>
+        <button class="menu-btn" onclick="resumeGame()" id="resumeBtn" style="display:none;">RESUME GAME</button>
+        <button class="menu-btn" onclick="showHighScore()">HIGH SCORE</button>
+        <button class="menu-btn" onclick="alert('Settings: Coming Soon!')">SETTINGS</button>
     </div>
+
+    <div id="score-board">Score: <span id="score">0</span> | Best: <span id="high">0</span></div>
 
     <canvas id="snakeCanvas"></canvas>
 
-    <div class="joypad">
-        <div class="btn up" id="btnUp">↑</div>
-        <div class="btn left" id="btnLeft">←</div>
-        <div class="btn down" id="btnDown">↓</div>
-        <div class="btn right" id="btnRight">→</div>
+    <div class="joypad" id="controls" style="display:none;">
+        <div class="btn" style="grid-column:2" onclick="setDirection('UP')">↑</div>
+        <div class="btn" style="grid-column:1" onclick="setDirection('LEFT')">←</div>
+        <div class="btn" style="grid-column:2" onclick="setDirection('DOWN')">↓</div>
+        <div class="btn" style="grid-column:3" onclick="setDirection('RIGHT')">→</div>
+        <button onclick="pauseGame()" style="grid-column:1; grid-row:1; background:none; border:none; color:white;">Pause</button>
     </div>
 
     <script>
         const canvas = document.getElementById("snakeCanvas");
         const ctx = canvas.getContext("2d");
-        const scoreElement = document.getElementById("score");
-        const pBtn = document.getElementById("pBtn");
-
+        const menu = document.getElementById("menu-overlay");
+        const resumeBtn = document.getElementById("resumeBtn");
+        const highScoreElement = document.getElementById("high");
+        
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const box = 20; 
-        let snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
-        let food = { x: box * 10, y: box * 5 };
-        let d = "RIGHT";
-        let score = 0;
+        const box = 20;
+        let snake, food, d, score, gameLoop;
         let isPaused = false;
 
-        function togglePause() {
-            isPaused = !isPaused;
-            pBtn.innerText = isPaused ? "Resume" : "Pause";
+        // Load High Score
+        let highScore = localStorage.getItem("snakeHighScore") || 0;
+        highScoreElement.innerText = highScore;
+
+        function startGame() {
+            snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
+            food = { x: box * 10, y: box * 5 };
+            d = "RIGHT";
+            score = 0;
+            document.getElementById("score").innerText = score;
+            menu.style.display = "none";
+            document.getElementById("controls").style.display = "grid";
+            if(gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(draw, 120);
+        }
+
+        function pauseGame() {
+            isPaused = true;
+            menu.style.display = "flex";
+            resumeBtn.style.display = "block";
+        }
+
+        function resumeGame() {
+            isPaused = false;
+            menu.style.display = "none";
+        }
+
+        function showHighScore() {
+            alert("Aapka ab tak ka Best Score hai: " + highScore);
         }
 
         function setDirection(newDir) {
-            if (isPaused) return;
             if (newDir == "LEFT" && d != "RIGHT") d = "LEFT";
             if (newDir == "UP" && d != "DOWN") d = "UP";
             if (newDir == "RIGHT" && d != "LEFT") d = "RIGHT";
             if (newDir == "DOWN" && d != "UP") d = "DOWN";
-        }
-
-        const setupBtn = (id, dir) => {
-            const el = document.getElementById(id);
-            el.addEventListener('touchstart', (e) => { e.preventDefault(); setDirection(dir); });
-            el.addEventListener('mousedown', () => setDirection(dir));
-        };
-
-        setupBtn('btnUp', 'UP'); setupBtn('btnDown', 'DOWN');
-        setupBtn('btnLeft', 'LEFT'); setupBtn('btnRight', 'RIGHT');
-
-        function spawnFood() {
-            food = {
-                x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
-                y: Math.floor(Math.random() * (canvas.height / box - 8) + 4) * box
-            };
         }
 
         function draw() {
@@ -121,9 +131,7 @@
             // Snake
             snake.forEach((part, i) => {
                 ctx.fillStyle = (i === 0) ? "#4ade80" : "#22c55e";
-                ctx.beginPath();
-                ctx.roundRect(part.x, part.y, box - 2, box - 2, 5);
-                ctx.fill();
+                ctx.fillRect(part.x, part.y, box-1, box-1);
             });
 
             // Food
@@ -142,8 +150,16 @@
 
             if (headX == food.x && headY == food.y) {
                 score++;
-                scoreElement.innerText = score;
-                spawnFood();
+                document.getElementById("score").innerText = score;
+                if(score > highScore) {
+                    highScore = score;
+                    localStorage.setItem("snakeHighScore", highScore);
+                    highScoreElement.innerText = highScore;
+                }
+                food = {
+                    x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
+                    y: Math.floor(Math.random() * (canvas.height / box - 8) + 4) * box
+                };
             } else {
                 snake.pop();
             }
@@ -152,15 +168,13 @@
 
             if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || 
                 snake.some((part, index) => index !== 0 && part.x === newHead.x && part.y === newHead.y)) {
+                clearInterval(gameLoop);
                 alert("Game Over! Score: " + score);
-                location.reload();
-                return;
+                resumeBtn.style.display = "none";
+                menu.style.display = "flex";
             }
-
             snake.unshift(newHead);
         }
-
-        setInterval(draw, 120);
     </script>
 </body>
 </html>
