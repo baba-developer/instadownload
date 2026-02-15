@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Pro Elite - Theme Edition</title>
+    <title>Snake Pro - Skins Edition</title>
     <style>
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         
-        /* CSS Variables for Themes */
         :root {
             --bg-color: #020617;
             --overlay-bg: rgba(2, 6, 23, 0.98);
             --text-color: #4ade80;
             --btn-bg: #1e293b;
+            --snake-head: #4ade80;
             --snake-body: #22c55e;
         }
 
@@ -21,13 +21,11 @@
             --overlay-bg: rgba(226, 232, 240, 0.98);
             --text-color: #166534;
             --btn-bg: #cbd5e1;
-            --snake-body: #15803d;
         }
 
         body { 
             margin: 0; padding: 0; background: var(--bg-color); 
             overflow: hidden; font-family: 'Segoe UI', sans-serif; height: 100vh; 
-            transition: background 0.3s;
         }
         
         .overlay {
@@ -36,24 +34,23 @@
             align-items: center; justify-content: center; z-index: 200;
         }
 
-        h1, h2 { color: var(--text-color); text-shadow: 0 0 10px rgba(34, 197, 94, 0.3); margin-bottom: 20px; }
-        .final-score { color: #1e293b; font-size: 24px; margin-bottom: 20px; }
-        .light-theme .final-score { color: #020617; }
+        h1, h2 { color: var(--text-color); margin-bottom: 20px; }
 
         .menu-btn {
-            width: 240px; padding: 15px; margin: 10px;
-            background: var(--btn-bg); color: #fff; border: 2px solid rgba(0,0,0,0.1);
+            width: 240px; padding: 15px; margin: 8px;
+            background: var(--btn-bg); color: #fff; border: 2px solid rgba(255,255,255,0.1);
             border-radius: 12px; font-size: 18px; font-weight: bold; text-align: center; cursor: pointer;
         }
         .light-theme .menu-btn { color: #1e293b; }
         
-        .toggle-btn { background: #334155; padding: 5px 10px; border-radius: 5px; float: right; color: #4ade80; }
+        .skin-options { display: flex; gap: 10px; margin-top: 10px; }
+        .skin-dot { width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; cursor: pointer; }
 
         #score-board { position: absolute; top: 20px; left: 20px; color: var(--text-color); font-size: 20px; font-weight: bold; z-index: 100; }
-        canvas { display: block; width: 100vw; height: 100vh; background: var(--bg-color); }
+        canvas { display: block; width: 100vw; height: 100vh; }
         
         .joypad { position: absolute; bottom: 40px; right: 20px; display: grid; grid-template-columns: repeat(3, 65px); gap: 8px; z-index: 100; }
-        .btn { width: 65px; height: 65px; background: rgba(0, 0, 0, 0.1); border: 2px solid rgba(0, 0, 0, 0.2); border-radius: 50%; color: var(--text-color); font-size: 28px; display: flex; align-items: center; justify-content: center; }
+        .btn { width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; color: var(--text-color); font-size: 28px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -66,21 +63,29 @@
 
     <div id="settings-overlay" class="overlay" style="display:none;">
         <h2>SETTINGS</h2>
-        <div class="setting-item menu-btn" onclick="toggleTheme()">Theme: <span id="themeStatus" class="toggle-btn">DARK</span></div>
-        <div class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</div>
+        <div class="menu-btn" onclick="toggleTheme()">Theme: <span id="themeStatus">DARK</span></div>
+        
+        <div style="color: white; margin-top: 15px;">SELECT SNAKE SKIN:</div>
+        <div class="skin-options">
+            <div class="skin-dot" style="background: #22c55e;" onclick="changeSkin('#4ade80', '#22c55e')"></div>
+            <div class="skin-dot" style="background: #eab308;" onclick="changeSkin('#fde047', '#eab308')"></div>
+            <div class="skin-dot" style="background: #3b82f6;" onclick="changeSkin('#60a5fa', '#3b82f6')"></div>
+            <div class="skin-dot" style="background: #a855f7;" onclick="changeSkin('#c084fc', '#a855f7')"></div>
+        </div>
+
+        <div class="menu-btn" style="background:#4ade80; color:#020617; margin-top: 30px;" onclick="toggleSettings(false)">BACK</div>
     </div>
 
     <div id="gameover-overlay" class="overlay" style="display:none;">
         <h1 style="color: #ef4444;">GAME OVER</h1>
-        <div class="final-score">Score: <span id="finalScoreDisplay">0</span></div>
         <div class="menu-btn" onclick="startGame()">PLAY AGAIN</div>
-        <div class="menu-btn" style="background:#334155; color:white;" onclick="backToMenu()">BACK TO MENU</div>
+        <div class="menu-btn" style="background:#334155; color:white;" onclick="backToMenu()">BACK</div>
     </div>
 
     <div id="score-board">Score: <span id="score">0</span></div>
     <canvas id="snakeCanvas"></canvas>
 
-    <div class="joypad" id="joypad">
+    <div class="joypad">
         <div class="btn" style="grid-column:2" onclick="setDirection('UP')">↑</div>
         <div class="btn" style="grid-column:1" onclick="setDirection('LEFT')">←</div>
         <div class="btn" style="grid-column:2" onclick="setDirection('DOWN')">↓</div>
@@ -99,7 +104,8 @@
 
         const box = 20;
         let snake, food, d, score, gameLoop;
-        let isDarkMode = true;
+        let snakeHeadColor = "#4ade80";
+        let snakeBodyColor = "#22c55e";
 
         function toggleSettings(show) {
             settings.style.display = show ? "flex" : "none";
@@ -107,9 +113,15 @@
         }
 
         function toggleTheme() {
-            isDarkMode = !isDarkMode;
             document.body.classList.toggle('light-theme');
-            document.getElementById("themeStatus").innerText = isDarkMode ? "DARK" : "LIGHT";
+            const isLight = document.body.classList.contains('light-theme');
+            document.getElementById("themeStatus").innerText = isLight ? "LIGHT" : "DARK";
+        }
+
+        function changeSkin(head, body) {
+            snakeHeadColor = head;
+            snakeBodyColor = body;
+            alert("Skin Updated!");
         }
 
         function backToMenu() {
@@ -119,7 +131,7 @@
 
         function startGame() {
             snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
-            food = spawnFood();
+            food = { x: box * 10, y: box * 5 };
             d = "RIGHT";
             score = 0;
             document.getElementById("score").innerText = score;
@@ -136,29 +148,18 @@
             if (newDir == "DOWN" && d != "UP") d = "DOWN";
         }
 
-        function spawnFood() {
-            return {
-                x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
-                y: Math.floor(Math.random() * (canvas.height / box - 5) + 2) * box
-            };
-        }
-
         function draw() {
-            // Background color depends on theme variable
-            const bgColor = getComputedStyle(document.body).getPropertyValue('--bg-color');
-            const snakeColor = getComputedStyle(document.body).getPropertyValue('--snake-body');
-            const textColor = getComputedStyle(document.body).getPropertyValue('--text-color');
-
-            ctx.fillStyle = bgColor;
+            const isLight = document.body.classList.contains('light-theme');
+            ctx.fillStyle = isLight ? "#e2e8f0" : "#020617";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Snake
             snake.forEach((part, i) => {
-                ctx.fillStyle = (i === 0) ? textColor : snakeColor;
-                ctx.fillRect(part.x, part.y, box-1, box-1);
+                ctx.fillStyle = (i === 0) ? snakeHeadColor : snakeBodyColor;
+                ctx.beginPath();
+                ctx.roundRect(part.x, part.y, box-2, box-2, 5);
+                ctx.fill();
             });
 
-            // Food
             ctx.fillStyle = "#ef4444";
             ctx.beginPath();
             ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
@@ -175,18 +176,18 @@
             if (headX == food.x && headY == food.y) {
                 score++;
                 document.getElementById("score").innerText = score;
-                food = spawnFood();
+                food = {
+                    x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
+                    y: Math.floor(Math.random() * (canvas.height / box - 8) + 4) * box
+                };
             } else {
                 snake.pop();
             }
 
             let newHead = { x: headX, y: headY };
-
             if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || 
-                snake.some((part, index) => index !== 0 && part.x === newHead.x && part.y === newHead.y)) {
-                
+                snake.some((part, idx) => idx !== 0 && part.x === newHead.x && part.y === newHead.y)) {
                 clearInterval(gameLoop);
-                document.getElementById("finalScoreDisplay").innerText = score;
                 gameover.style.display = "flex";
             }
             snake.unshift(newHead);
