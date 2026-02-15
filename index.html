@@ -3,53 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Real Snake Pro</title>
+    <title>Snake Full Mobile</title>
     <style>
         * { box-sizing: border-box; touch-action: manipulation; }
         body { 
-            margin: 0; background: #0f172a; color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; 
+            margin: 0; padding: 0; background: #020617; 
+            overflow: hidden; font-family: sans-serif; 
+            display: flex; flex-direction: column; height: 100vh;
         }
         
-        #ui-top { width: 320px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .score-box { background: #1e293b; padding: 5px 15px; border-radius: 20px; border: 1px solid #334155; font-weight: bold; color: #4ade80; }
-        
-        canvas { 
-            background: #020617; border: 5px solid #1e293b; 
-            border-radius: 10px; box-shadow: 0 0 30px rgba(0,0,0,0.8); 
+        /* Full Screen Canvas */
+        #snakeCanvas { 
+            display: block; width: 100vw; height: 100vh; 
+            background: #020617; position: absolute; top: 0; left: 0;
         }
 
-        /* Control Buttons */
-        .controls { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 75px); gap: 10px; }
-        .btn { 
-            width: 75px; height: 75px; background: #1e293b; border: 2px solid #334155; 
-            border-radius: 50%; color: white; font-size: 28px; 
-            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #0f172a;
+        /* UI Overlays */
+        #score-board {
+            position: absolute; top: 20px; left: 20px;
+            color: #4ade80; font-size: 24px; font-weight: bold;
+            z-index: 10; text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
         }
-        .btn:active { transform: translateY(3px); box-shadow: none; background: #334155; }
+
+        .action-btns {
+            position: absolute; top: 20px; right: 20px; z-index: 10;
+        }
+
+        .reset-btn {
+            background: rgba(239, 68, 68, 0.8); color: white; border: none;
+            padding: 8px 15px; border-radius: 8px; font-weight: bold;
+        }
+
+        /* Transparent Mobile Controls */
+        .controls { 
+            position: absolute; bottom: 40px; width: 100%;
+            display: grid; grid-template-columns: repeat(3, 1fr); 
+            justify-items: center; align-items: center; gap: 10px; z-index: 10;
+        }
+        .btn { 
+            width: 80px; height: 80px; background: rgba(255, 255, 255, 0.1); 
+            border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; 
+            color: white; font-size: 30px; display: flex; 
+            align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .btn:active { background: rgba(255, 255, 255, 0.3); }
         .up { grid-column: 2; }
         .left { grid-column: 1; }
         .down { grid-column: 2; }
         .right { grid-column: 3; }
-
-        .btn-action { padding: 8px 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="ui-top">
-        <div class="score-box">Score: <span id="score">0</span></div>
-        <button class="btn-action" style="background: #ef4444; color: white;" onclick="location.reload()">Reset</button>
+    <div id="score-board">Score: <span id="score">0</span></div>
+    
+    <div class="action-btns">
+        <button class="reset-btn" onclick="location.reload()">Restart</button>
     </div>
 
-    <canvas id="snakeCanvas" width="320" height="320"></canvas>
+    <canvas id="snakeCanvas"></canvas>
 
     <div class="controls">
-        <div class="btn up" onclick="changeDir('UP')">↑</div>
-        <div class="btn left" onclick="changeDir('LEFT')">←</div>
-        <div class="btn down" onclick="changeDir('DOWN')">↓</div>
-        <div class="btn right" onclick="changeDir('RIGHT')">→</div>
+        <div class="btn up" id="up">↑</div>
+        <div class="btn left" id="left">←</div>
+        <div class="btn down" id="down">↓</div>
+        <div class="btn right" id="right">→</div>
     </div>
 
     <script>
@@ -57,11 +75,15 @@
         const ctx = canvas.getContext("2d");
         const scoreElement = document.getElementById("score");
 
-        const box = 20;
+        // Screen adjustment
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const box = 25; // Snake size
         let snake = [
-            { x: 8 * box, y: 10 * box },
-            { x: 7 * box, y: 10 * box },
-            { x: 6 * box, y: 10 * box }
+            { x: box * 5, y: box * 10 },
+            { x: box * 4, y: box * 10 },
+            { x: box * 3, y: box * 10 }
         ];
         
         let food = spawnFood();
@@ -70,8 +92,8 @@
 
         function spawnFood() {
             return {
-                x: Math.floor(Math.random() * 15 + 1) * box,
-                y: Math.floor(Math.random() * 15 + 1) * box
+                x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
+                y: Math.floor(Math.random() * (canvas.height / box - 4) + 2) * box
             };
         }
 
@@ -82,51 +104,37 @@
             else if (dir == "DOWN" && d != "UP") d = "DOWN";
         }
 
-        // PC Controls
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "ArrowLeft" && d != "RIGHT") d = "LEFT";
-            if (e.key === "ArrowUp" && d != "DOWN") d = "UP";
-            if (e.key === "ArrowRight" && d != "LEFT") d = "RIGHT";
-            if (e.key === "ArrowDown" && d != "UP") d = "DOWN";
-        });
+        // Event Listeners for Touch
+        document.getElementById('up').addEventListener('touchstart', () => changeDir('UP'));
+        document.getElementById('down').addEventListener('touchstart', () => changeDir('DOWN'));
+        document.getElementById('left').addEventListener('touchstart', () => changeDir('LEFT'));
+        document.getElementById('right').addEventListener('touchstart', () => changeDir('RIGHT'));
 
         function draw() {
-            // Background
             ctx.fillStyle = "#020617";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Snake
+            // Snake Drawing
             for (let i = 0; i < snake.length; i++) {
-                if (i === 0) {
-                    // Head of the snake
-                    ctx.fillStyle = "#4ade80"; 
-                    ctx.beginPath();
-                    ctx.roundRect(snake[i].x, snake[i].y, box, box, 8);
-                    ctx.fill();
-                    
-                    // Eyes
+                ctx.fillStyle = (i === 0) ? "#4ade80" : "#22c55e";
+                ctx.beginPath();
+                ctx.roundRect(snake[i].x, snake[i].y, box - 2, box - 2, 6);
+                ctx.fill();
+                
+                if(i === 0) { // Eyes for head
                     ctx.fillStyle = "black";
                     ctx.beginPath();
-                    ctx.arc(snake[i].x + 5, snake[i].y + 6, 2, 0, Math.PI * 2); // Left eye
-                    ctx.arc(snake[i].x + 15, snake[i].y + 6, 2, 0, Math.PI * 2); // Right eye
-                    ctx.fill();
-                } else {
-                    // Body parts
-                    ctx.fillStyle = "#22c55e";
-                    ctx.beginPath();
-                    ctx.roundRect(snake[i].x + 1, snake[i].y + 1, box - 2, box - 2, 5);
+                    ctx.arc(snake[i].x + 7, snake[i].y + 7, 3, 0, Math.PI * 2);
+                    ctx.arc(snake[i].x + 18, snake[i].y + 7, 3, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
 
-            // Draw Food (Apple)
+            // Food (Apple)
             ctx.fillStyle = "#ef4444";
             ctx.beginPath();
             ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI * 2);
             ctx.fill();
-            // Leaf on Apple
-            ctx.fillStyle = "#4ade80";
-            ctx.fillRect(food.x + box/2 - 2, food.y + 2, 4, 4);
 
             let snakeX = snake[0].x;
             let snakeY = snake[0].y;
@@ -136,7 +144,6 @@
             if (d == "RIGHT") snakeX += box;
             if (d == "DOWN") snakeY += box;
 
-            // Eating process
             if (snakeX == food.x && snakeY == food.y) {
                 score++;
                 scoreElement.innerHTML = score;
@@ -147,7 +154,7 @@
 
             let newHead = { x: snakeX, y: snakeY };
 
-            // Game Over logic
+            // Wall collision and self collision
             if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
                 clearInterval(game);
                 alert("Game Over! Score: " + score);
@@ -164,7 +171,7 @@
             return false;
         }
 
-        let game = setInterval(draw, 130);
+        let game = setInterval(draw, 120);
     </script>
 </body>
 </html>
