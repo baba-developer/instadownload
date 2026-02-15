@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Pro - Game Guide Edition</title>
+    <title>Snake Pro - Level System</title>
     <style>
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         
@@ -12,15 +12,6 @@
             --overlay-bg: rgba(2, 6, 23, 0.98);
             --text-color: #4ade80;
             --btn-bg: #1e293b;
-            --snake-head: #4ade80;
-            --snake-body: #22c55e;
-        }
-
-        .light-theme {
-            --bg-color: #e2e8f0;
-            --overlay-bg: rgba(226, 232, 240, 0.98);
-            --text-color: #166534;
-            --btn-bg: #cbd5e1;
         }
 
         body { 
@@ -34,25 +25,29 @@
             align-items: center; justify-content: center; z-index: 200; padding: 20px;
         }
 
-        h1, h2 { color: var(--text-color); margin-bottom: 15px; text-align: center; }
-        
+        h1, h2 { color: var(--text-color); margin-bottom: 15px; }
+
         .menu-btn {
             width: 240px; padding: 15px; margin: 8px;
             background: var(--btn-bg); color: #fff; border: 2px solid rgba(255,255,255,0.1);
             border-radius: 12px; font-size: 18px; font-weight: bold; text-align: center; cursor: pointer;
         }
 
-        /* Guide Card Styling */
-        .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px; border-radius: 12px; margin: 8px;
-            width: 300px; border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex; align-items: center; gap: 15px;
+        /* Skin System Styling */
+        .skins-container {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 15px 0;
         }
+        .skin-card {
+            background: #1e293b; padding: 10px; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center;
+            border: 2px solid transparent; width: 110px; position: relative;
+        }
+        .skin-card.locked { opacity: 0.5; filter: grayscale(1); }
+        .skin-card.active { border-color: #4ade80; background: #0f172a; }
         
-        .item-icon { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; }
-        .item-desc { color: white; font-size: 14px; line-height: 1.4; }
-        .light-theme .item-desc { color: #1e293b; }
+        .skin-preview { width: 30px; height: 30px; border-radius: 5px; margin-bottom: 5px; }
+        .skin-label { color: white; font-size: 12px; font-weight: bold; }
+        .lock-text { color: #ef4444; font-size: 10px; margin-top: 4px; }
 
         #score-board { position: absolute; top: 20px; left: 20px; color: var(--text-color); font-size: 20px; font-weight: bold; z-index: 100; }
         canvas { display: block; width: 100vw; height: 100vh; }
@@ -70,37 +65,45 @@
     </div>
 
     <div id="settings-overlay" class="overlay" style="display:none;">
-        <h2>SETTINGS</h2>
-        <div class="menu-btn" onclick="toggleTheme()">Theme Mode: <span id="themeStatus">DARK</span></div>
-        <div class="menu-btn" onclick="toggleGuide(true)" style="background: #3b82f6; border:none;">GAME GUIDE</div>
-        <div class="menu-btn" style="background:#4ade80; color:#020617; margin-top: 20px;" onclick="toggleSettings(false)">BACK</div>
+        <h2>SNAKE SKINS</h2>
+        <div style="color: #94a3b8; font-size: 14px;">High Score: <span id="highScoreText">0</span></div>
+        
+        <div class="skins-container">
+            <div class="skin-card active" id="skin-green" onclick="selectSkin('green', 0)">
+                <div class="skin-preview" style="background: #22c55e;"></div>
+                <div class="skin-label">Classic</div>
+            </div>
+            <div class="skin-card locked" id="skin-gold" onclick="selectSkin('gold', 20)">
+                <div class="skin-preview" style="background: #eab308;"></div>
+                <div class="skin-label">Gold</div>
+                <div class="lock-text" id="lock-gold">Unlock at 20</div>
+            </div>
+            <div class="skin-card locked" id="skin-blue" onclick="selectSkin('blue', 50)">
+                <div class="skin-preview" style="background: #3b82f6;"></div>
+                <div class="skin-label">Ocean</div>
+                <div class="lock-text" id="lock-blue">Unlock at 50</div>
+            </div>
+            <div class="skin-card locked" id="skin-purple" onclick="selectSkin('purple', 100)">
+                <div class="skin-preview" style="background: #a855f7;"></div>
+                <div class="skin-label">Neon</div>
+                <div class="lock-text" id="lock-purple">Unlock at 100</div>
+            </div>
+        </div>
+
+        <div class="menu-btn" onclick="toggleGuide(true)" style="background: #3b82f6;">GAME GUIDE</div>
+        <div class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</div>
     </div>
 
     <div id="guide-overlay" class="overlay" style="display:none;">
         <h2>GAME GUIDE</h2>
-        
-        <div class="info-card">
-            <div class="item-icon" style="background: #ef4444; border-radius: 50%;"></div>
-            <div class="item-desc"><b>Red Apple:</b> Normal khana. Score +1 badhaye ga.</div>
-        </div>
-        
-        <div class="info-card">
-            <div class="item-icon" style="background: #3b82f6;"></div>
-            <div class="item-desc"><b>Blue Diamond:</b> Special item! Score +5 badhaye ga aur speed SLOW kar de ga.</div>
-        </div>
-
-        <div class="info-card">
-            <div class="item-icon" style="border: 2px solid #4ade80; background: none;"></div>
-            <div class="item-desc"><b>Walls:</b> Deewar se bachain, warna game over ho jaye gi!</div>
-        </div>
-
-        <div class="menu-btn" style="margin-top: 20px;" onclick="toggleGuide(false)">I UNDERSTAND</div>
+        <p style="color:white; font-size:14px;">Eat red apples for +1 point.<br>Eat blue diamonds for +5 points & Slow Motion.<br>Unlock new skins by beating your High Score!</p>
+        <div class="menu-btn" onclick="toggleGuide(false)">GOT IT</div>
     </div>
 
     <div id="gameover-overlay" class="overlay" style="display:none;">
         <h1 style="color: #ef4444;">GAME OVER</h1>
         <div class="menu-btn" onclick="startGame()">PLAY AGAIN</div>
-        <div class="menu-btn" style="background:#334155; color:white;" onclick="backToMenu()">BACK TO MENU</div>
+        <div class="menu-btn" style="background:#334155; color:white;" onclick="backToMenu()">BACK</div>
     </div>
 
     <div id="score-board">Score: <span id="score">0</span></div>
@@ -118,7 +121,6 @@
         const ctx = canvas.getContext("2d");
         const menu = document.getElementById("menu-overlay");
         const settings = document.getElementById("settings-overlay");
-        const guide = document.getElementById("guide-overlay");
         const gameover = document.getElementById("gameover-overlay");
         
         canvas.width = window.innerWidth;
@@ -127,50 +129,65 @@
         const box = 20;
         let snake, food, powerUp, d, score, gameLoop;
         let gameSpeed = 120;
+        let highscore = localStorage.getItem("snakeHighScore") || 0;
+        let currentSkin = { head: "#4ade80", body: "#22c55e" };
+
+        const skins = {
+            green: { head: "#4ade80", body: "#22c55e" },
+            gold: { head: "#fde047", body: "#eab308" },
+            blue: { head: "#60a5fa", body: "#3b82f6" },
+            purple: { head: "#c084fc", body: "#a855f7" }
+        };
 
         function toggleSettings(show) {
+            if(show) updateSkinsUI();
             settings.style.display = show ? "flex" : "none";
             menu.style.display = show ? "none" : "flex";
         }
 
-        function toggleGuide(show) {
-            guide.style.display = show ? "flex" : "none";
-            settings.style.display = show ? "none" : "flex";
+        function updateSkinsUI() {
+            document.getElementById("highScoreText").innerText = highscore;
+            checkLock('gold', 20);
+            checkLock('blue', 50);
+            checkLock('purple', 100);
         }
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-theme');
-            document.getElementById("themeStatus").innerText = document.body.classList.contains('light-theme') ? "LIGHT" : "DARK";
+        function checkLock(skinId, req) {
+            const el = document.getElementById('skin-' + skinId);
+            const lockT = document.getElementById('lock-' + skinId);
+            if(highscore >= req) {
+                el.classList.remove('locked');
+                lockT.innerText = "Unlocked!";
+                lockT.style.color = "#4ade80";
+            }
+        }
+
+        function selectSkin(type, req) {
+            if(highscore < req) {
+                alert("Pehle " + req + " score karen is skin ko unlock karne ke liye!");
+                return;
+            }
+            currentSkin = skins[type];
+            document.querySelectorAll('.skin-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('skin-' + type).classList.add('active');
         }
 
         function startGame() {
             snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
-            food = { x: Math.floor(Math.random()*(canvas.width/box-2)+1)*box, y: Math.floor(Math.random()*(canvas.height/box-8)+4)*box };
+            food = { x: box * 10, y: box * 15 };
             powerUp = null; d = "RIGHT"; score = 0; gameSpeed = 120;
             document.getElementById("score").innerText = score;
             menu.style.display = "none"; gameover.style.display = "none";
-            resetInterval();
-        }
-
-        function resetInterval() {
             if(gameLoop) clearInterval(gameLoop);
             gameLoop = setInterval(draw, gameSpeed);
         }
 
-        function setDirection(newDir) {
-            if (newDir == "LEFT" && d != "RIGHT") d = "LEFT";
-            if (newDir == "UP" && d != "DOWN") d = "UP";
-            if (newDir == "RIGHT" && d != "LEFT") d = "RIGHT";
-            if (newDir == "DOWN" && d != "UP") d = "DOWN";
-        }
-
         function draw() {
-            const isLight = document.body.classList.contains('light-theme');
-            ctx.fillStyle = isLight ? "#e2e8f0" : "#020617";
+            ctx.fillStyle = "#020617";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             snake.forEach((part, i) => {
-                ctx.fillStyle = (i === 0) ? "#4ade80" : "#22c55e";
+                ctx.fillStyle = (i === 0) ? currentSkin.head : currentSkin.body;
                 ctx.beginPath(); ctx.roundRect(part.x, part.y, box-2, box-2, 5); ctx.fill();
             });
 
@@ -187,14 +204,19 @@
             if (d == "RIGHT") headX += box; if (d == "DOWN") headY += box;
 
             if (headX == food.x && headY == food.y) {
-                score++; document.getElementById("score").innerText = score;
+                score++;
+                document.getElementById("score").innerText = score;
                 food = { x: Math.floor(Math.random()*(canvas.width/box-2)+1)*box, y: Math.floor(Math.random()*(canvas.height/box-8)+4)*box };
                 if (!powerUp && Math.random() > 0.8) powerUp = { x: food.x, y: food.y-box };
+                if (score > highscore) {
+                    highscore = score;
+                    localStorage.setItem("snakeHighScore", highscore);
+                }
             } 
             else if (powerUp && headX == powerUp.x && headY == powerUp.y) {
                 score += 5; document.getElementById("score").innerText = score;
-                powerUp = null; gameSpeed = 180; resetInterval();
-                setTimeout(() => { gameSpeed = 120; resetInterval(); }, 5000);
+                powerUp = null;
+                // Temporary boost code could go here
             }
             else { snake.pop(); }
 
@@ -205,7 +227,15 @@
             }
             snake.unshift(newHead);
         }
+
+        function setDirection(newDir) {
+            if (newDir == "LEFT" && d != "RIGHT") d = "LEFT";
+            if (newDir == "UP" && d != "DOWN") d = "UP";
+            if (newDir == "RIGHT" && d != "LEFT") d = "RIGHT";
+            if (newDir == "DOWN" && d != "UP") d = "DOWN";
+        }
         function backToMenu() { gameover.style.display = "none"; menu.style.display = "flex"; }
+        function toggleGuide(s) { document.getElementById("guide-overlay").style.display = s ? "flex":"none"; }
     </script>
 </body>
 </html>
