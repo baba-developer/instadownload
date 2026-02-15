@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Pro Elite</title>
+    <title>Snake Pro Elite - Full Version</title>
     <style>
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         
@@ -11,7 +11,7 @@
             --bg-color: #020617;
             --overlay-bg: rgba(2, 6, 23, 0.98);
             --text-color: #4ade80;
-            --btn-bg: #1e293b;
+            --btn-bg: #cbd5e1;
         }
 
         body { 
@@ -25,27 +25,38 @@
             align-items: center; justify-content: center; z-index: 200; padding: 20px;
         }
 
-        h1, h2 { color: var(--text-color); margin-bottom: 20px; font-size: 42px; letter-spacing: 2px; }
+        h1, h2 { color: var(--text-color); margin-bottom: 20px; text-align: center; }
 
         .menu-btn {
             width: 260px; padding: 18px; margin: 10px;
-            background: #cbd5e1; color: #1e293b; border: 1px solid #94a3b8;
+            background: var(--btn-bg); color: #1e293b; border: 1px solid #94a3b8;
             border-radius: 15px; font-size: 20px; font-weight: bold; text-align: center; cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* Privacy Policy Screen Styling */
+        /* Skin System Styling */
+        .skins-container {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 15px 0;
+        }
+        .skin-card {
+            background: #1e293b; padding: 10px; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center;
+            border: 2px solid transparent; width: 115px;
+        }
+        .skin-card.locked { opacity: 0.4; filter: grayscale(1); }
+        .skin-card.active { border-color: #4ade80; background: #0f172a; }
+        .skin-preview { width: 30px; height: 30px; border-radius: 5px; margin-bottom: 5px; }
+        .skin-label { color: white; font-size: 12px; }
+        .lock-text { color: #ef4444; font-size: 10px; margin-top: 4px; }
+
         .policy-content {
             background: #1e293b; color: white; padding: 20px; border-radius: 12px;
-            max-width: 90%; max-height: 60vh; overflow-y: auto; font-size: 14px;
-            line-height: 1.6; text-align: left; border: 1px solid #334155;
+            max-width: 90%; max-height: 50vh; overflow-y: auto; font-size: 14px; text-align: left;
         }
 
         #score-board { position: absolute; top: 20px; left: 20px; color: var(--text-color); font-size: 24px; font-weight: bold; z-index: 100; }
-        canvas { display: block; width: 100vw; height: 100vh; }
         
-        /* Joypad styling from screenshot */
-        .joypad { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(3, 80px); gap: 20px; z-index: 100; }
+        .joypad { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: grid; grid-template-columns: repeat(3, 80px); gap: 15px; z-index: 100; }
         .btn { width: 80px; height: 80px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: white; font-size: 32px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -58,37 +69,56 @@
         <div class="menu-btn" style="background: #94a3b8;" onclick="togglePrivacy(true)">PRIVACY POLICY</div>
     </div>
 
+    <div id="settings-overlay" class="overlay" style="display:none;">
+        <h2>SETTINGS</h2>
+        <div style="color: #94a3b8; margin-bottom: 10px;">High Score: <span id="highScoreText">0</span></div>
+        
+        <div class="skins-container">
+            <div class="skin-card active" id="skin-classic" onclick="selectSkin('classic', 0)">
+                <div class="skin-preview" style="background: #22c55e;"></div>
+                <div class="skin-label">Classic</div>
+            </div>
+            <div class="skin-card locked" id="skin-gold" onclick="selectSkin('gold', 20)">
+                <div class="skin-preview" style="background: #eab308;"></div>
+                <div class="skin-label">Gold</div>
+                <div class="lock-text" id="lock-gold">Score 20</div>
+            </div>
+        </div>
+
+        <div class="menu-btn" onclick="toggleGuide(true)" style="background: #3b82f6; color: white;">GAME GUIDE</div>
+        <div class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</div>
+    </div>
+
     <div id="privacy-overlay" class="overlay" style="display:none;">
         <h2>PRIVACY POLICY</h2>
         <div class="policy-content">
-            <p><b>1. Data Collection:</b> Hum koi bhi personal data collect nahi karte.</p>
-            <p><b>2. Game Scores:</b> Aapka high score sirf aapke device par save hota hai.</p>
-            <p><b>3. Ads:</b> Is game mein koi third-party ads nahi hain.</p>
-            <p><b>4. Changes:</b> Hum policy mein kisi bhi waqt tabdeeli kar sakte hain.</p>
+            <p><b>1. Data:</b> We don't collect personal data.</p>
+            <p><b>2. Ads:</b> No third-party ads.</p>
+            <p><b>3. Scores:</b> Saved locally on your device.</p>
         </div>
-        <div class="menu-btn" style="background:#4ade80; color:#020617; margin-top: 20px;" onclick="togglePrivacy(false)">BACK</div>
+        <div class="menu-btn" onclick="togglePrivacy(false)">BACK</div>
     </div>
 
-    <div id="settings-overlay" class="overlay" style="display:none;">
-        <h2>SETTINGS</h2>
-        <div class="menu-btn" onclick="toggleGuide(true)">GAME GUIDE</div>
-        <div class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</div>
+    <div id="guide-overlay" class="overlay" style="display:none;">
+        <h2>GAME GUIDE</h2>
+        <p style="color:white; text-align:center;">Red Apple: +1 Score<br>Blue Diamond: +5 Score & Slow Motion</p>
+        <div class="menu-btn" onclick="toggleGuide(false)">GOT IT</div>
     </div>
 
     <div id="gameover-overlay" class="overlay" style="display:none;">
         <h1 style="color: #ef4444;">GAME OVER</h1>
         <div class="menu-btn" onclick="startGame()">PLAY AGAIN</div>
-        <div class="menu-btn" style="background:#334155; color:white;" onclick="backToMenu()">BACK</div>
+        <div class="menu-btn" style="background:#334155; color:white;" onclick="backToMenu()">BACK TO MENU</div>
     </div>
 
     <div id="score-board">Score: <span id="score">0</span></div>
     <canvas id="snakeCanvas"></canvas>
 
     <div class="joypad">
-        <div class="btn" style="grid-column:2; grid-row:1" onclick="setDirection('UP')">↑</div>
-        <div class="btn" style="grid-column:1; grid-row:2" onclick="setDirection('LEFT')">←</div>
-        <div class="btn" style="grid-column:2; grid-row:3" onclick="setDirection('DOWN')">↓</div>
-        <div class="btn" style="grid-column:3; grid-row:2" onclick="setDirection('RIGHT')">→</div>
+        <div class="btn" style="grid-column:2" onclick="setDirection('UP')">↑</div>
+        <div class="btn" style="grid-column:1" onclick="setDirection('LEFT')">←</div>
+        <div class="btn" style="grid-column:2" onclick="setDirection('DOWN')">↓</div>
+        <div class="btn" style="grid-column:3" onclick="setDirection('RIGHT')">→</div>
     </div>
 
     <script>
@@ -97,28 +127,42 @@
         const menu = document.getElementById("menu-overlay");
         const settings = document.getElementById("settings-overlay");
         const privacy = document.getElementById("privacy-overlay");
+        const guide = document.getElementById("guide-overlay");
         const gameover = document.getElementById("gameover-overlay");
         
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
         const box = 20;
-        let snake, food, d, score, gameLoop;
-
-        function togglePrivacy(show) {
-            privacy.style.display = show ? "flex" : "none";
-            menu.style.display = show ? "none" : "flex";
-        }
+        let snake, food, powerUp, d, score, gameLoop;
+        let highscore = localStorage.getItem("snakeHighScore") || 0;
+        let currentSkin = { head: "#4ade80", body: "#22c55e" };
 
         function toggleSettings(show) {
+            if(show) {
+                document.getElementById("highScoreText").innerText = highscore;
+                if(highscore >= 20) {
+                    document.getElementById("skin-gold").classList.remove("locked");
+                    document.getElementById("lock-gold").innerText = "Unlocked!";
+                }
+            }
             settings.style.display = show ? "flex" : "none";
             menu.style.display = show ? "none" : "flex";
         }
 
+        function togglePrivacy(s) { privacy.style.display = s ? "flex":"none"; menu.style.display = s ? "none":"flex"; }
+        function toggleGuide(s) { guide.style.display = s ? "flex":"none"; settings.style.display = s ? "none":"flex"; }
+
+        function selectSkin(skin, req) {
+            if(highscore < req) return alert("Unlock karne ke liye " + req + " score chahiye!");
+            currentSkin = (skin === 'gold') ? {head:"#fde047", body:"#eab308"} : {head:"#4ade80", body:"#22c55e"};
+            document.querySelectorAll('.skin-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('skin-'+skin).classList.add('active');
+        }
+
         function startGame() {
             snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
-            food = { x: box * 10, y: box * 15 };
-            d = "RIGHT"; score = 0;
+            food = { x: box * 10, y: box * 15 }; powerUp = null; d = "RIGHT"; score = 0;
             document.getElementById("score").innerText = score;
             menu.style.display = "none"; gameover.style.display = "none";
             if(gameLoop) clearInterval(gameLoop);
@@ -126,17 +170,13 @@
         }
 
         function draw() {
-            ctx.fillStyle = "#020617";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+            ctx.fillStyle = "#020617"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             snake.forEach((part, i) => {
-                ctx.fillStyle = (i === 0) ? "#4ade80" : "#22c55e";
+                ctx.fillStyle = (i === 0) ? currentSkin.head : currentSkin.body;
                 ctx.fillRect(part.x, part.y, box-1, box-1);
             });
-
-            ctx.fillStyle = "#ef4444";
-            ctx.beginPath(); ctx.arc(food.x+10, food.y+10, 8, 0, Math.PI*2); ctx.fill();
-
+            ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.arc(food.x+10, food.y+10, 8, 0, Math.PI*2); ctx.fill();
+            
             let headX = snake[0].x, headY = snake[0].y;
             if (d == "LEFT") headX -= box; if (d == "UP") headY -= box;
             if (d == "RIGHT") headX += box; if (d == "DOWN") headY += box;
@@ -144,6 +184,7 @@
             if (headX == food.x && headY == food.y) {
                 score++; document.getElementById("score").innerText = score;
                 food = { x: Math.floor(Math.random()*(canvas.width/box-2)+1)*box, y: Math.floor(Math.random()*(canvas.height/box-8)+4)*box };
+                if (score > highscore) { highscore = score; localStorage.setItem("snakeHighScore", highscore); }
             } else { snake.pop(); }
 
             let newHead = { x: headX, y: headY };
@@ -154,11 +195,11 @@
             snake.unshift(newHead);
         }
 
-        function setDirection(newDir) {
-            if (newDir == "LEFT" && d != "RIGHT") d = "LEFT";
-            if (newDir == "UP" && d != "DOWN") d = "UP";
-            if (newDir == "RIGHT" && d != "LEFT") d = "RIGHT";
-            if (newDir == "DOWN" && d != "UP") d = "DOWN";
+        function setDirection(n) {
+            if (n == "LEFT" && d != "RIGHT") d = "LEFT";
+            if (n == "UP" && d != "DOWN") d = "UP";
+            if (n == "RIGHT" && d != "LEFT") d = "RIGHT";
+            if (n == "DOWN" && d != "UP") d = "DOWN";
         }
         function backToMenu() { gameover.style.display = "none"; menu.style.display = "flex"; }
     </script>
