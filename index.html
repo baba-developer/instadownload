@@ -5,21 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snake Pro Elite Fix</title>
     <style>
-        /* Pura CSS pehle wala hi hai */
         * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         body { margin: 0; padding: 0; background: #020617; overflow: hidden; font-family: 'Segoe UI', sans-serif; height: 100vh; }
-        #menu-overlay, #settings-overlay {
+        
+        /* Menus Styling (Main, Settings, Game Over) */
+        .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(2, 6, 23, 0.98); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 200;
         }
+
         h1, h2 { color: #4ade80; text-shadow: 0 0 10px #22c55e; margin-bottom: 20px; }
-        .menu-btn, .setting-item {
+        .final-score { color: white; font-size: 24px; margin-bottom: 20px; }
+
+        .menu-btn {
             width: 240px; padding: 15px; margin: 10px;
             background: #1e293b; color: white; border: 2px solid #334155;
-            border-radius: 12px; font-size: 18px; font-weight: bold; text-align: center;
+            border-radius: 12px; font-size: 18px; font-weight: bold; text-align: center; cursor: pointer;
         }
+        .menu-btn:active { background: #4ade80; color: #020617; }
         .toggle-btn { background: #334155; padding: 5px 10px; border-radius: 5px; float: right; color: #4ade80; }
+
         #score-board { position: absolute; top: 20px; left: 20px; color: #4ade80; font-size: 20px; font-weight: bold; z-index: 100; }
         canvas { display: block; width: 100vw; height: 100vh; background: #020617; }
         .joypad { position: absolute; bottom: 40px; right: 20px; display: grid; grid-template-columns: repeat(3, 65px); gap: 8px; z-index: 100; }
@@ -28,16 +34,23 @@
 </head>
 <body>
 
-    <div id="menu-overlay">
+    <div id="menu-overlay" class="overlay">
         <h1>SNAKE PRO</h1>
-        <button class="menu-btn" onclick="startGame()">NEW GAME</button>
-        <button class="menu-btn" onclick="toggleSettings(true)">SETTINGS</button>
+        <div class="menu-btn" onclick="startGame()">NEW GAME</div>
+        <div class="menu-btn" onclick="toggleSettings(true)">SETTINGS</div>
     </div>
 
-    <div id="settings-overlay" style="display:none;">
+    <div id="settings-overlay" class="overlay" style="display:none;">
         <h2>SETTINGS</h2>
-        <div class="setting-item" onclick="toggleButtons()">Buttons: <span id="btnStatus" class="toggle-btn">ON</span></div>
-        <button class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</button>
+        <div class="setting-item menu-btn" onclick="toggleButtons()">Buttons: <span id="btnStatus" class="toggle-btn">ON</span></div>
+        <div class="menu-btn" style="background:#4ade80; color:#020617" onclick="toggleSettings(false)">BACK</div>
+    </div>
+
+    <div id="gameover-overlay" class="overlay" style="display:none;">
+        <h1 style="color: #ef4444; text-shadow: 0 0 10px #b91c1c;">GAME OVER</h1>
+        <div class="final-score">Score: <span id="finalScoreDisplay">0</span></div>
+        <div class="menu-btn" onclick="startGame()">PLAY AGAIN</div>
+        <div class="menu-btn" style="background:#334155" onclick="backToMenu()">BACK TO MENU</div>
     </div>
 
     <div id="score-board">Score: <span id="score">0</span></div>
@@ -55,6 +68,7 @@
         const ctx = canvas.getContext("2d");
         const menu = document.getElementById("menu-overlay");
         const settings = document.getElementById("settings-overlay");
+        const gameover = document.getElementById("gameover-overlay");
         const joypad = document.getElementById("joypad");
         
         canvas.width = window.innerWidth;
@@ -63,7 +77,7 @@
         const box = 20;
         let snake, food, d, score, gameLoop;
         let showButtons = true;
-        let startX, startY; // Swipe variables
+        let startX, startY;
 
         function toggleSettings(show) {
             settings.style.display = show ? "flex" : "none";
@@ -76,35 +90,22 @@
             joypad.style.display = showButtons ? "grid" : "none";
         }
 
-        // SWIPE LOGIC FIX
-        canvas.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-        }, false);
+        function backToMenu() {
+            gameover.style.display = "none";
+            menu.style.display = "flex";
+        }
 
-        canvas.addEventListener('touchmove', (e) => {
-            if (showButtons) return; // Buttons ON hain toh swipe nahi chalega
-            e.preventDefault(); 
-        }, {passive: false});
-
+        // Swipe Logic
+        canvas.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }, false);
+        canvas.addEventListener('touchmove', (e) => { if (!showButtons) e.preventDefault(); }, {passive: false});
         canvas.addEventListener('touchend', (e) => {
             if (showButtons) return;
-            
-            let endX = e.changedTouches[0].clientX;
-            let endY = e.changedTouches[0].clientY;
-
-            let diffX = endX - startX;
-            let diffY = endY - startY;
-
-            // Check if movement was horizontal or vertical
+            let diffX = e.changedTouches[0].clientX - startX;
+            let diffY = e.changedTouches[0].clientY - startY;
             if (Math.abs(diffX) > Math.abs(diffY)) {
-                // Horizontal movement
-                if (diffX > 30) setDirection('RIGHT');
-                else if (diffX < -30) setDirection('LEFT');
+                if (diffX > 30) setDirection('RIGHT'); else if (diffX < -30) setDirection('LEFT');
             } else {
-                // Vertical movement
-                if (diffY > 30) setDirection('DOWN');
-                else if (diffY < -30) setDirection('UP');
+                if (diffY > 30) setDirection('DOWN'); else if (diffY < -30) setDirection('UP');
             }
         }, false);
 
@@ -115,6 +116,7 @@
             score = 0;
             document.getElementById("score").innerText = score;
             menu.style.display = "none";
+            gameover.style.display = "none";
             if(gameLoop) clearInterval(gameLoop);
             gameLoop = setInterval(draw, 120);
         }
@@ -167,9 +169,11 @@
 
             if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || 
                 snake.some((part, index) => index !== 0 && part.x === newHead.x && part.y === newHead.y)) {
+                
                 clearInterval(gameLoop);
-                alert("Game Over! Score: " + score);
-                menu.style.display = "flex";
+                // Alert ki jagah Menu dikhayen
+                document.getElementById("finalScoreDisplay").innerText = score;
+                gameover.style.display = "flex";
             }
             snake.unshift(newHead);
         }
