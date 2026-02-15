@@ -3,55 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Mobile Fix</title>
+    <title>Snake Joypad Edition</title>
     <style>
-        * { box-sizing: border-box; touch-action: none; } /* Touch action none se zoom/scroll block hoga */
+        * { box-sizing: border-box; touch-action: none; -webkit-user-select: none; user-select: none; }
         body { 
             margin: 0; padding: 0; background: #020617; 
             overflow: hidden; font-family: sans-serif; 
             display: flex; flex-direction: column; height: 100vh;
         }
         
-        #score-board {
-            position: absolute; top: 20px; left: 20px;
-            color: #4ade80; font-size: 24px; font-weight: bold;
-            z-index: 20;
+        /* UI Overlays */
+        #ui-layer {
+            position: absolute; top: 0; width: 100%; padding: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 100;
+        }
+        #score-board { color: #4ade80; font-size: 24px; font-weight: bold; }
+        .top-btns { display: flex; gap: 10px; }
+        .action-btn { 
+            background: rgba(255,255,255,0.1); color: white; border: 1px solid white;
+            padding: 8px 12px; border-radius: 5px; font-weight: bold; font-size: 14px;
         }
 
-        canvas { 
-            display: block; width: 100vw; height: 100vh; 
-            background: #020617; position: absolute; top: 0; left: 0;
-        }
+        canvas { display: block; width: 100vw; height: 100vh; background: #020617; }
 
-        /* Controls: Z-index zyada rakha hai taake touch register ho */
-        .controls { 
-            position: absolute; bottom: 50px; width: 100%;
-            display: grid; grid-template-columns: repeat(3, 1fr); 
-            justify-items: center; align-items: center; gap: 15px; z-index: 100;
+        /* Joypad Style Controls (Pass Pass) */
+        .joypad { 
+            position: absolute; bottom: 40px; right: 20px; /* Right side par set kiya hai thumb ke liye */
+            display: grid; grid-template-columns: repeat(3, 65px); 
+            grid-template-rows: repeat(2, 65px); gap: 5px; z-index: 100;
         }
         
         .btn { 
-            width: 85px; height: 85px; background: rgba(255, 255, 255, 0.15); 
+            width: 65px; height: 65px; background: rgba(255, 255, 255, 0.15); 
             border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; 
-            color: white; font-size: 35px; display: flex; 
-            align-items: center; justify-content: center; backdrop-filter: blur(10px);
-            -webkit-user-select: none; user-select: none;
+            color: white; font-size: 28px; display: flex; 
+            align-items: center; justify-content: center; backdrop-filter: blur(5px);
         }
         
-        .btn:active { background: rgba(74, 222, 128, 0.5); border-color: #4ade80; }
-        
-        .up { grid-column: 2; }
-        .left { grid-column: 1; }
-        .down { grid-column: 2; }
-        .right { grid-column: 3; }
+        .btn:active { background: #4ade80; color: black; }
+        .up { grid-column: 2; grid-row: 1; }
+        .left { grid-column: 1; grid-row: 2; }
+        .down { grid-column: 2; grid-row: 2; }
+        .right { grid-column: 3; grid-row: 2; }
     </style>
 </head>
 <body>
 
-    <div id="score-board">Score: <span id="score">0</span></div>
+    <div id="ui-layer">
+        <div id="score-board">Score: <span id="score">0</span></div>
+        <div class="top-btns">
+            <button class="action-btn" onclick="togglePause()" id="pBtn">Pause</button>
+            <button class="action-btn" style="border-color:#ef4444" onclick="location.reload()">Restart</button>
+        </div>
+    </div>
+
     <canvas id="snakeCanvas"></canvas>
 
-    <div class="controls">
+    <div class="joypad">
         <div class="btn up" id="btnUp">↑</div>
         <div class="btn left" id="btnLeft">←</div>
         <div class="btn down" id="btnDown">↓</div>
@@ -62,51 +71,50 @@
         const canvas = document.getElementById("snakeCanvas");
         const ctx = canvas.getContext("2d");
         const scoreElement = document.getElementById("score");
+        const pBtn = document.getElementById("pBtn");
 
-        // Canvas Setup
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
         const box = 20; 
         let snake = [{ x: box * 5, y: box * 10 }, { x: box * 4, y: box * 10 }];
         let food = { x: box * 10, y: box * 5 };
         let d = "RIGHT";
         let score = 0;
+        let isPaused = false;
 
-        // Direction Control Function
+        function togglePause() {
+            isPaused = !isPaused;
+            pBtn.innerText = isPaused ? "Resume" : "Pause";
+        }
+
         function setDirection(newDir) {
+            if (isPaused) return;
             if (newDir == "LEFT" && d != "RIGHT") d = "LEFT";
             if (newDir == "UP" && d != "DOWN") d = "UP";
             if (newDir == "RIGHT" && d != "LEFT") d = "RIGHT";
             if (newDir == "DOWN" && d != "UP") d = "DOWN";
         }
 
-        // Button Click/Touch Handlers
         const setupBtn = (id, dir) => {
             const el = document.getElementById(id);
-            // Click aur Touch dono handle kiye hain
-            el.addEventListener('touchstart', (e) => { e.preventDefault(); setDirection(dir); }, {passive: false});
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); setDirection(dir); });
             el.addEventListener('mousedown', () => setDirection(dir));
         };
 
-        setupBtn('btnUp', 'UP');
-        setupBtn('btnDown', 'DOWN');
-        setupBtn('btnLeft', 'LEFT');
-        setupBtn('btnRight', 'RIGHT');
+        setupBtn('btnUp', 'UP'); setupBtn('btnDown', 'DOWN');
+        setupBtn('btnLeft', 'LEFT'); setupBtn('btnRight', 'RIGHT');
 
-        // Food Spawn
         function spawnFood() {
             food = {
                 x: Math.floor(Math.random() * (canvas.width / box - 2) + 1) * box,
-                y: Math.floor(Math.random() * (canvas.height / box - 6) + 2) * box
+                y: Math.floor(Math.random() * (canvas.height / box - 8) + 4) * box
             };
         }
 
         function draw() {
+            if (isPaused) return;
+
             ctx.fillStyle = "#020617";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -142,7 +150,6 @@
 
             let newHead = { x: headX, y: headY };
 
-            // Collision
             if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || 
                 snake.some((part, index) => index !== 0 && part.x === newHead.x && part.y === newHead.y)) {
                 alert("Game Over! Score: " + score);
