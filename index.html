@@ -209,16 +209,21 @@ if (headX < 0 || headX > canvas.width - box || headY < 0 || headY > canvas.heigh
         privacyOverlay.style.display = "none";
         menuOverlay.style.display = "flex";
     }
-} // Ye togglePrivacy function ka akhri bracket hai
+} // Ye togglePrivacy ka band hone wala bracket hai
 
-// Loading Screen Fix
-setTimeout(function() {
-    var loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        loadingScreen.style.display = 'none';
-        console.log("Loading Finished!");
+// Loading Screen ko hatane ka sabse asan tareeka
+function hideLoading() {
+    var loader = document.getElementById('loading-screen');
+    if (loader) {
+        loader.style.display = 'none';
     }
-}, 2000); 
+}
+
+// 2 seconds baad loading khatam karein
+setTimeout(hideLoading, 2000);
+
+// Agar page jaldi load ho jaye toh foran hata dein
+window.onload = hideLoading;
 
 </script>
 </body>
