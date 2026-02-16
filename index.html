@@ -45,11 +45,11 @@
             font-size: 20px; font-weight: bold; text-align: center; cursor: pointer;
         }
 
-        /* 3. Game Visuals (The "Pic" Look) */
+        /* 3. Game Visuals */
         #snakeCanvas {
             display: block;
             margin: auto;
-            border: 12px solid #334155; /* Pathar jaisi Walls */
+            border: 12px solid #334155; 
             background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
                         url('https://i.postimg.cc/YCNs0Kbq/Black-and-Red-Photocentric-Local-Horror-Film-You-Tube-Banner-(2).png');
             background-size: cover;
@@ -74,16 +74,17 @@
         <div class="menu-btn" onclick="startGame()">NEW GAME</div>
         <div class="menu-btn" style="background: #94a3b8;" onclick="togglePrivacy(true)">PRIVACY POLICY</div>
     </div>
+
     <div id="privacy-overlay" class="overlay" style="display:none;">
-    <h2>PRIVACY POLICY</h2>
-    <div style="background: rgba(255,255,255,0.1); color: #cbd5e1; padding: 20px; border-radius: 15px; max-width: 90%; text-align: left; font-size: 14px; line-height: 1.6;">
-        <p><b>1. Data Collection:</b> Hum koi bhi personal data collect nahi karte.</p>
-        <p><b>2. Game Scores:</b> Aapka high score sirf aapke device par save hota hai.</p>
-        <p><b>3. Ads:</b> Is game mein koi third-party ads nahi hain.</p>
-        <p><b>4. Changes:</b> Hum policy mein kisi bhi waqt tabdeeli kar sakte hain.</p>
+        <h2>PRIVACY POLICY</h2>
+        <div style="background: rgba(255,255,255,0.1); color: #cbd5e1; padding: 20px; border-radius: 15px; max-width: 90%; text-align: left; font-size: 14px; line-height: 1.6;">
+            <p><b>1. Data Collection:</b> Hum koi bhi personal data collect nahi karte.</p>
+            <p><b>2. Game Scores:</b> Aapka high score sirf aapke device par save hota hai.</p>
+            <p><b>3. Ads:</b> Is game mein koi third-party ads nahi hain.</p>
+            <p><b>4. Changes:</b> Hum policy mein kisi bhi waqt tabdeeli kar sakte hain.</p>
+        </div>
+        <div class="menu-btn" style="margin-top: 20px; background: #4ade80; color: #000;" onclick="togglePrivacy(false)">BACK</div>
     </div>
-    <div class="menu-btn" style="margin-top: 20px; background: #4ade80; color: #000;" onclick="togglePrivacy(false)">BACK</div>
-</div>
 
     <div id="gameover-overlay" class="overlay" style="display:none;">
         <h1 style="color: #ef4444;">GAME OVER</h1>
@@ -107,12 +108,10 @@
         const ctx = canvas.getContext("2d");
         const box = 20;
         
-        // Canvas size setting
         canvas.width = Math.floor((window.innerWidth * 0.9) / box) * box;
         canvas.height = Math.floor((window.innerHeight * 0.6) / box) * box;
 
         let snake, food, d, score, gameLoop;
-        let highscore = localStorage.getItem("snakeHighScore") || 0;
 
         function startGame() {
             snake = [{ x: box * 5, y: box * 5 }];
@@ -135,14 +134,16 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Snake (Rounded & Styled)
             snake.forEach((part, i) => {
                 ctx.fillStyle = (i === 0) ? "#4CAF50" : "#2E7D32";
                 ctx.beginPath();
-                ctx.roundRect(part.x, part.y, box-2, box-2, 6);
+                if (ctx.roundRect) {
+                    ctx.roundRect(part.x, part.y, box-2, box-2, 6);
+                } else {
+                    ctx.rect(part.x, part.y, box-2, box-2);
+                }
                 ctx.fill();
                 
-                // Head Eyes
                 if(i === 0) {
                     ctx.fillStyle = "white";
                     ctx.fillRect(part.x + 4, part.y + 4, 4, 4);
@@ -150,7 +151,6 @@
                 }
             });
 
-            // Draw Food (Apple)
             ctx.fillStyle = "#ef4444";
             ctx.beginPath();
             ctx.arc(food.x + box/2, food.y + box/2, 8, 0, Math.PI*2);
@@ -164,10 +164,9 @@
             if (d == "RIGHT") headX += box;
             if (d == "DOWN") headY += box;
 
-            // Collision with Walls or Body
-// Collision with Walls (Margin fix for border)
-if (headX < 0 || headX > canvas.width - box || headY < 0 || headY > canvas.height - box || 
-    snake.some((p, index) => index !== 0 && p.x === headX && p.y === headY)) {                snake.some((p) => p.x === headX && p.y === headY)) {
+            // --- FIXED COLLISION LOGIC ---
+            if (headX < 0 || headX > canvas.width - box || headY < 0 || headY > canvas.height - box || 
+                snake.some((p, index) => index !== 0 && p.x === headX && p.y === headY)) {
                 clearInterval(gameLoop);
                 document.getElementById("gameover-overlay").style.display = "flex";
                 return;
@@ -196,35 +195,27 @@ if (headX < 0 || headX > canvas.width - box || headY < 0 || headY > canvas.heigh
             document.getElementById("menu-overlay").style.display = "flex";
         }
 
-       function togglePrivacy(show) {
-    const privacyOverlay = document.getElementById("privacy-overlay");
-    const menuOverlay = document.getElementById("menu-overlay");
+        function togglePrivacy(show) {
+            const privacyOverlay = document.getElementById("privacy-overlay");
+            const menuOverlay = document.getElementById("menu-overlay");
+            if (show) {
+                privacyOverlay.style.display = "flex";
+                menuOverlay.style.display = "none";
+            } else {
+                privacyOverlay.style.display = "none";
+                menuOverlay.style.display = "flex";
+            }
+        }
 
-    if (show) {
-        // Privacy screen dikhao aur Menu chupa do
-        privacyOverlay.style.display = "flex";
-        menuOverlay.style.display = "none";
-    } else {
-        // Privacy screen chupa do aur Menu wapas dikhao
-        privacyOverlay.style.display = "none";
-        menuOverlay.style.display = "flex";
-    }
-} // Ye togglePrivacy ka band hone wala bracket hai
+        // --- FIXED LOADING TIMER ---
+        function hideLoading() {
+            const loader = document.getElementById('loading-screen');
+            if (loader) loader.style.display = 'none';
+        }
 
-// Loading Screen ko hatane ka sabse asan tareeka
-function hideLoading() {
-    var loader = document.getElementById('loading-screen');
-    if (loader) {
-        loader.style.display = 'none';
-    }
-}
-
-// 2 seconds baad loading khatam karein
-setTimeout(hideLoading, 2000);
-
-// Agar page jaldi load ho jaye toh foran hata dein
-window.onload = hideLoading;
-
-</script>
+        window.onload = function() {
+            setTimeout(hideLoading, 2000);
+        };
+    </script>
 </body>
 </html>
