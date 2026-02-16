@@ -47,14 +47,15 @@
 
         /* 3. Game Visuals */
         #snakeCanvas {
-            display: block;
-            margin: auto;
-            border: 12px solid #334155; 
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
-                        url('https://i.postimg.cc/YCNs0Kbq/Black-and-Red-Photocentric-Local-Horror-Film-You-Tube-Banner-(2).png');
-            background-size: cover;
-            box-shadow: 0 0 50px #000;
-        }
+    display: block;
+    margin: auto;
+    border: 12px solid #334155;
+    box-sizing: content-box; /* YE LINE ADD KAREIN */
+    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                url('https://i.postimg.cc/YCNs0Kbq/Black-and-Red-Photocentric-Local-Horror-Film-You-Tube-Banner-(2).png');
+    background-size: cover;
+    box-shadow: 0 0 50px #000;
+}
 
         #score-board { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); color: gold; font-size: 24px; font-weight: bold; z-index: 100; text-shadow: 2px 2px #000; }
         
@@ -165,8 +166,8 @@
             if (d == "DOWN") headY += box;
 
             // --- FIXED COLLISION LOGIC ---
-            if (headX < 0 || headX > canvas.width - box || headY < 0 || headY > canvas.height - box || 
-                snake.some((p, index) => index !== 0 && p.x === headX && p.y === headY)) {
+if (headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height || 
+    snake.some((p, index) => index !== 0 && p.x === headX && p.y === headY)) {                snake.some((p, index) => index !== 0 && p.x === headX && p.y === headY)) {
                 clearInterval(gameLoop);
                 document.getElementById("gameover-overlay").style.display = "flex";
                 return;
