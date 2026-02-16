@@ -195,7 +195,20 @@
             document.getElementById("menu-overlay").style.display = "flex";
         }
 
-        function togglePrivacy(s) { alert("Privacy Policy: We don't collect data. Powered by Baba-Developer"); }
+       function togglePrivacy(show) {
+    const privacyOverlay = document.getElementById("privacy-overlay");
+    const menuOverlay = document.getElementById("menu-overlay");
+
+    if (show) {
+        // Privacy screen dikhao aur Menu chupa do
+        privacyOverlay.style.display = "flex";
+        menuOverlay.style.display = "none";
+    } else {
+        // Privacy screen chupa do aur Menu wapas dikhao
+        privacyOverlay.style.display = "none";
+        menuOverlay.style.display = "flex";
+    }
+}
 
         // Loading Screen Timer
         window.onload = function() {
