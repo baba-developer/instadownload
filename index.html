@@ -73,7 +73,17 @@
     <div id="menu-overlay" class="overlay">
         <h1>SNAKE PRO</h1>
         <div class="menu-btn" onclick="startGame()">NEW GAME</div>
-         <div class="menu-btn" onclick="startGame()">Setting</div>
+<div class="menu-btn" style="background: #64748b; color: white;" onclick="toggleSettings(true)">SETTINGS</div>
+        <div id="settings-overlay" class="overlay" style="display:none;">
+    <h1>SETTINGS</h1>
+    <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; width: 280px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; color: white;">
+            <span>Dark Theme</span>
+            <input type="checkbox" id="theme-toggle" checked onclick="changeTheme()">
+        </div>
+    </div>
+    <div class="menu-btn" style="margin-top: 20px; background: #4ade80; color: #000;" onclick="toggleSettings(false)">BACK</div>
+</div>
         <div class="menu-btn" style="background: #94a3b8;" onclick="togglePrivacy(true)">PRIVACY POLICY</div>
     </div>
 
