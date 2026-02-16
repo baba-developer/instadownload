@@ -209,14 +209,17 @@ if (headX < 0 || headX > canvas.width - box || headY < 0 || headY > canvas.heigh
         privacyOverlay.style.display = "none";
         menuOverlay.style.display = "flex";
     }
-}
+} // Ye togglePrivacy function ka akhri bracket hai
 
-        // Loading Screen Timer
-        window.onload = function() {
-            setTimeout(function() {
-                document.getElementById('loading-screen').style.display = 'none';
-            }, 2000); 
-        };
-    </script>
+// Loading Screen Fix
+setTimeout(function() {
+    var loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+        console.log("Loading Finished!");
+    }
+}, 2000); 
+
+</script>
 </body>
 </html>
