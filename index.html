@@ -24,6 +24,11 @@
         #top-bar { position: absolute; top: 15px; width: 310px; display: flex; justify-content: space-between; align-items: center; color: white; z-index: 100; font-weight: bold; }
         #snakeCanvas { border: 4px solid #1e293b; background: #000; border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
 
+        /* Settings Style */
+        .setting-row { margin: 15px 0; text-align: left; }
+        .setting-row label { display: block; font-size: 12px; margin-bottom: 5px; opacity: 0.8; }
+        .setting-row select { width: 100%; padding: 10px; background: #000; color: white; border: 1px solid #333; border-radius: 8px; }
+
         /* Controls */
         .joypad { position: absolute; bottom: 30px; display: grid; grid-template-columns: repeat(3, 75px); gap: 12px; }
         .btn { width: 75px; height: 75px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 30px; border: 1px solid rgba(255,255,255,0.1); }
@@ -54,16 +59,31 @@
 <div id="settings-overlay" class="overlay" style="display:none;">
     <div class="panel">
         <h2 style="margin-top:0; letter-spacing:2px;">SETTINGS</h2>
-        <div style="text-align:left; font-size:14px;">
+        
+        <div class="setting-row">
             <label>Difficulty:</label>
-            <select id="diff-select" style="width:100%; padding:10px; margin:10px 0; background:#000; color:white; border:1px solid #333;">
+            <select id="diff-select">
                 <option value="180">Easy</option>
                 <option value="130" selected>Medium</option>
                 <option value="80">Hard (Extreme)</option>
             </select>
-            <label>Vibration:</label>
+        </div>
+
+        <div class="setting-row">
+            <label>Snake Skin:</label>
+            <select id="color-select">
+                <option value="#4ade80">Classic Green</option>
+                <option value="#fbbf24">Golden Viper</option>
+                <option value="#60a5fa">Blue Shadow</option>
+                <option value="#f87171">Red Dragon</option>
+            </select>
+        </div>
+
+        <div class="setting-row" style="display: flex; justify-content: space-between; align-items: center;">
+            <label style="margin:0;">Vibration:</label>
             <input type="checkbox" id="vib-toggle" checked>
         </div>
+
         <button class="menu-btn" onclick="hideSettings()" style="margin-top:20px;">Save Changes</button>
     </div>
 </div>
@@ -97,7 +117,7 @@
     const box = 20;
     canvas.width = 300; canvas.height = 400;
 
-    let snake, food, d, score, gameLoop, speed, isGolden = false;
+    let snake, food, d, score, gameLoop, speed, isGolden = false, currentSnakeColor;
     let particles = [];
     let highScore = localStorage.getItem("snakeHighScore") || 0;
 
@@ -105,6 +125,8 @@
 
     function startGame() {
         speed = parseInt(document.getElementById("diff-select").value);
+        currentSnakeColor = document.getElementById("color-select").value;
+        
         snake = [{ x: 140, y: 200 }];
         d = "RIGHT"; score = 0;
         document.getElementById("score").innerText = score;
@@ -115,7 +137,7 @@
     }
 
     function spawnFood() {
-        isGolden = Math.random() < 0.2; // 20% chance for golden food
+        isGolden = Math.random() < 0.2; 
         food = {
             x: Math.floor(Math.random() * (canvas.width / box)) * box,
             y: Math.floor(Math.random() * (canvas.height / box)) * box
@@ -133,14 +155,12 @@
     }
 
     function draw() {
-        // Neon Grid Background
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = "#0a0a0a";
         for(let i=0; i<canvas.width; i+=box) ctx.strokeRect(i, 0, box, canvas.height);
         for(let i=0; i<canvas.height; i+=box) ctx.strokeRect(0, i, canvas.width, box);
 
-        // Draw Particles
         particles.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy; p.life -= 0.05;
             ctx.fillStyle = p.color;
@@ -150,11 +170,11 @@
         });
         ctx.globalAlpha = 1;
 
-        // Snake
+        // Snake - Using currentSnakeColor from settings
         snake.forEach((part, i) => {
-            ctx.fillStyle = (i === 0) ? varColor() : "white";
+            ctx.fillStyle = (i === 0) ? currentSnakeColor : "rgba(255,255,255,0.8)";
             ctx.shadowBlur = (i === 0) ? 15 : 0;
-            ctx.shadowColor = varColor();
+            ctx.shadowColor = currentSnakeColor;
             ctx.beginPath();
             ctx.roundRect(part.x, part.y, box-1, box-1, 6);
             ctx.fill();
@@ -180,13 +200,11 @@
             score += points;
             createParticles(food.x, food.y, isGolden ? "#fbbf24" : "#ef4444");
             document.getElementById("score").innerText = score;
-            if(score > highScore) { highScore = score; localStorage.setItem("snakeHighScore", highScore); }
+            if(score > highScore) { highScore = score; localStorage.setItem("snakeHighScore", highScore); document.getElementById("high-score-val").innerText = highScore; }
             spawnFood();
         } else { snake.pop(); }
         snake.unshift({ x: headX, y: headY });
     }
-
-    function varColor() { return isGolden ? "#fbbf24" : "#4ade80"; }
 
     function gameOver() {
         clearInterval(gameLoop);
